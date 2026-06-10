@@ -1479,13 +1479,15 @@ function mcSelectMatch(m) {
 }
 
 // ── Canvas render dispatcher ──
-function mcRender() {
+async function mcRender() {
   if (!mcSelectedMatch) return;
   const canvas = document.getElementById('mc-canvas');
   if (!canvas) return;
+  const m = mcSelectedMatch;
+  // Preload both flags before drawing
+  await preloadFlags([m.f1, m.f2]);
   const ctx = canvas.getContext('2d');
   ctx.clearRect(0,0,1080,1920);
-  const m = mcSelectedMatch;
   if (mcTemplate==='classic') mcDrawClassic(ctx,m);
   else if (mcTemplate==='oracle') mcDrawOracle(ctx,m);
   else if (mcTemplate==='hype') mcDrawHype(ctx,m);
@@ -1530,18 +1532,67 @@ function mcDrawStagePill(ctx,stage,y){
   ctx.strokeStyle=sc.color;ctx.lineWidth=1.5;mcRoundRect(ctx,px,y-32,pw,ph,21);ctx.stroke();
   ctx.fillStyle=sc.color;ctx.fillText(stage.toUpperCase(),MCW/2,y);
 }
-function mcDrawFlag(ctx,code,cx,cy,size=160){
-  // Draw a flag box with country code — no emoji, no unicode issues
-  const col = FLAG_COLORS[code] || '#444';
-  const bw=size*1.4, bh=size;
-  mcRoundRect(ctx,cx-bw/2,cy-bh/2,bw,bh,12);
-  ctx.fillStyle=col;ctx.fill();
-  ctx.strokeStyle='rgba(255,255,255,0.15)';ctx.lineWidth=2;
-  mcRoundRect(ctx,cx-bw/2,cy-bh/2,bw,bh,12);ctx.stroke();
-  // Two-letter code
-  ctx.font=`700 ${Math.round(size*0.38)}px Inter,sans-serif`;
-  ctx.fillStyle='rgba(255,255,255,0.9)';ctx.textAlign='center';
-  ctx.fillText(code==='--'?'TBD':code,cx,cy+size*0.14);
+// ── SHARED FLAG IMAGE CACHE ──
+const FLAG_IMG_CACHE = {};
+
+function loadFlagImage(code) {
+  if (!code || code === '--') return Promise.resolve(null);
+  const key = code.toLowerCase();
+  if (FLAG_IMG_CACHE[key]) return Promise.resolve(FLAG_IMG_CACHE[key]);
+  return new Promise(resolve => {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => { FLAG_IMG_CACHE[key] = img; resolve(img); };
+    img.onerror = () => { FLAG_IMG_CACHE[key] = null; resolve(null); };
+    img.src = `https://flagcdn.com/w320/${key}.png`;
+  });
+}
+
+async function preloadFlags(codes) {
+  await Promise.all(codes.map(c => loadFlagImage(c)));
+}
+
+function drawFlagImage(ctx, code, cx, cy, w, h, radius=16) {
+  const key = code ? code.toLowerCase() : '';
+  const img = FLAG_IMG_CACHE[key];
+  const x = cx - w/2, y = cy - h/2;
+
+  // Always draw the rounded clip box
+  ctx.save();
+  mcRoundRect(ctx, x, y, w, h, radius);
+  ctx.clip();
+
+  if (img) {
+    ctx.drawImage(img, x, y, w, h);
+    // Subtle dark vignette on the flag for better text contrast nearby
+    const vg = ctx.createLinearGradient(x, y, x, y+h);
+    vg.addColorStop(0, 'rgba(0,0,0,0.05)');
+    vg.addColorStop(1, 'rgba(0,0,0,0.25)');
+    ctx.fillStyle = vg;
+    ctx.fillRect(x, y, w, h);
+  } else {
+    // Fallback: colored box with code if image fails
+    const col = FLAG_COLORS[code ? code.toUpperCase() : ''] || '#333';
+    ctx.fillStyle = col;
+    ctx.fillRect(x, y, w, h);
+    ctx.font = `700 ${Math.round(h*0.38)}px Inter,sans-serif`;
+    ctx.fillStyle = 'rgba(255,255,255,0.9)';
+    ctx.textAlign = 'center';
+    ctx.fillText(code || '?', cx, cy + h*0.14);
+  }
+
+  ctx.restore();
+
+  // Border ring
+  ctx.strokeStyle = 'rgba(255,255,255,0.25)';
+  ctx.lineWidth = 2;
+  mcRoundRect(ctx, x, y, w, h, radius);
+  ctx.stroke();
+}
+
+function mcDrawFlag(ctx, code, cx, cy, size=160) {
+  const w = size * 1.5, h = size;
+  drawFlagImage(ctx, code, cx, cy, w, h, 14);
 }
 function mcDrawTeamName(ctx,name,x,y){
   const fs=name.length>12?68:name.length>9?82:name.length>6?96:110;
@@ -1563,95 +1614,247 @@ function mcSepLine(ctx,y){
   ctx.beginPath();ctx.moveTo(60,y);ctx.lineTo(MCW-60,y);ctx.stroke();
 }
 
-// ── CLASSIC ──
+// ── CLASSIC — full redesign ──
 function mcDrawClassic(ctx,m){
-  mcDrawBase(ctx,'#090e14','#111822');mcDrawSplit(ctx,m.c1,m.c2,0.18);mcDrawGoldBars(ctx);
-  mcDrawBadge(ctx);mcDrawStagePill(ctx,m.stage,192);
-  ctx.strokeStyle='rgba(255,255,255,0.05)';ctx.lineWidth=2;ctx.setLineDash([8,8]);
-  ctx.beginPath();ctx.moveTo(MCW/2,260);ctx.lineTo(MCW/2,MCH-180);ctx.stroke();ctx.setLineDash([]);
-  mcDrawFlag(ctx,m.f1,MCW/4,530);mcDrawTeamName(ctx,m.t1,MCW/4,700);
-  ctx.font='700 180px Bebas Neue,sans-serif';ctx.fillStyle='#c9a84c';ctx.textAlign='center';
-  ctx.shadowColor='rgba(201,168,76,0.4)';ctx.shadowBlur=30;ctx.fillText('VS',MCW/2,980);ctx.shadowBlur=0;
-  mcDrawFlag(ctx,m.f2,3*MCW/4,530);mcDrawTeamName(ctx,m.t2,3*MCW/4,700);
-  mcSepLine(ctx,1080);
-  ctx.font='700 44px Inter,sans-serif';ctx.fillStyle='#c9a84c';ctx.textAlign='center';
-  ctx.fillText(m.date+(m.time!=='TBD'?' · '+m.time:''),MCW/2,1150);
-  ctx.font='400 36px Inter,sans-serif';ctx.fillStyle='rgba(255,255,255,0.5)';
-  ctx.fillText(m.venue,MCW/2,1210);ctx.font='400 32px Inter,sans-serif';
-  ctx.fillStyle='rgba(255,255,255,0.3)';ctx.fillText(m.city,MCW/2,1258);
-  ctx.font='500 30px Inter,sans-serif';ctx.fillStyle='rgba(201,168,76,0.45)';
-  ctx.fillText('USA  ·  Canada  ·  Mexico',MCW/2,MCH-160);
+  const W=MCW,H=MCH;
+
+  // Full bleed left/right team color halves
+  ctx.fillStyle=m.c1||'#1a3a2a'; ctx.fillRect(0,0,W/2,H);
+  ctx.fillStyle=m.c2||'#1a1a3a'; ctx.fillRect(W/2,0,W/2,H);
+
+  // Dark overlay on both halves so text stays readable
+  ctx.fillStyle='rgba(0,0,0,0.62)'; ctx.fillRect(0,0,W,H);
+
+  // Subtle pitch lines
+  ctx.strokeStyle='rgba(255,255,255,0.03)'; ctx.lineWidth=1;
+  for(let y=0;y<H;y+=90){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
+
+  // Gold top/bottom bars
+  const gb=ctx.createLinearGradient(0,0,W,0);
+  gb.addColorStop(0,'#6b4e10');gb.addColorStop(0.5,'#e8c96a');gb.addColorStop(1,'#6b4e10');
+  ctx.fillStyle=gb; ctx.fillRect(0,0,W,12); ctx.fillRect(0,H-12,W,12);
+
+  // Thin center divider line
+  ctx.strokeStyle='rgba(255,255,255,0.08)'; ctx.lineWidth=1.5; ctx.setLineDash([]);
+  ctx.beginPath(); ctx.moveTo(W/2,140); ctx.lineTo(W/2,H-130); ctx.stroke();
+
+  // FIFA WC badge
+  ctx.font='600 30px Inter,sans-serif'; ctx.fillStyle='rgba(201,168,76,0.7)';
+  ctx.textAlign='center'; ctx.fillText('FIFA WORLD CUP 2026™',W/2,80);
+
+  // Stage pill
+  mcDrawStagePill(ctx,m.stage,140);
+
+  // ── TEAM 1 — left half ──
+  // Big flag box
+  mcDrawFlag(ctx,m.f1,W/4,480,200);
+  // Team name
+  const n1=m.t1.toUpperCase(); const fs1=n1.length>10?72:n1.length>7?88:n1.length>5?104:118;
+  ctx.font=`700 ${fs1}px Bebas Neue,sans-serif`; ctx.fillStyle='#ffffff';
+  ctx.textAlign='center'; ctx.shadowColor='rgba(0,0,0,0.7)'; ctx.shadowBlur=12;
+  ctx.fillText(n1,W/4,760); ctx.shadowBlur=0;
+
+  // ── TEAM 2 — right half ──
+  mcDrawFlag(ctx,m.f2,3*W/4,480,200);
+  const n2=m.t2.toUpperCase(); const fs2=n2.length>10?72:n2.length>7?88:n2.length>5?104:118;
+  ctx.font=`700 ${fs2}px Bebas Neue,sans-serif`; ctx.fillStyle='#ffffff';
+  ctx.textAlign='center'; ctx.shadowColor='rgba(0,0,0,0.7)'; ctx.shadowBlur=12;
+  ctx.fillText(n2,3*W/4,760); ctx.shadowBlur=0;
+
+  // ── VS BADGE — center circle overlapping both halves ──
+  const vx=W/2, vy=960, vr=130;
+  // Outer ring
+  ctx.beginPath(); ctx.arc(vx,vy,vr+6,0,Math.PI*2);
+  const rg=ctx.createRadialGradient(vx,vy,0,vx,vy,vr+6);
+  rg.addColorStop(0,'rgba(201,168,76,0.3)'); rg.addColorStop(1,'rgba(201,168,76,0.0)');
+  ctx.fillStyle=rg; ctx.fill();
+  // Dark circle
+  ctx.beginPath(); ctx.arc(vx,vy,vr,0,Math.PI*2);
+  ctx.fillStyle='rgba(6,10,16,0.92)'; ctx.fill();
+  ctx.strokeStyle='rgba(201,168,76,0.6)'; ctx.lineWidth=3;
+  ctx.beginPath(); ctx.arc(vx,vy,vr,0,Math.PI*2); ctx.stroke();
+  // VS text
+  ctx.font='700 150px Bebas Neue,sans-serif'; ctx.fillStyle='#c9a84c';
+  ctx.textAlign='center'; ctx.shadowColor='rgba(201,168,76,0.5)'; ctx.shadowBlur=20;
+  ctx.fillText('VS',vx,vy+54); ctx.shadowBlur=0;
+
+  // ── INFO BLOCK — frosted panel bottom ──
+  const iy=1180, ih=460;
+  ctx.fillStyle='rgba(0,0,0,0.55)';
+  mcRoundRect(ctx,60,iy,W-120,ih,20); ctx.fill();
+  ctx.strokeStyle='rgba(201,168,76,0.2)'; ctx.lineWidth=1.5;
+  mcRoundRect(ctx,60,iy,W-120,ih,20); ctx.stroke();
+
+  // Date + time
+  ctx.font='700 60px Bebas Neue,sans-serif'; ctx.fillStyle='#c9a84c'; ctx.textAlign='center';
+  ctx.letterSpacing='2px';
+  ctx.fillText(m.date.toUpperCase()+(m.time!=='TBD'?'  ·  '+m.time:''),W/2,iy+88);
+  ctx.letterSpacing='0px';
+
+  // Venue
+  ctx.font='500 40px Inter,sans-serif'; ctx.fillStyle='rgba(255,255,255,0.7)';
+  ctx.fillText(m.venue,W/2,iy+162);
+
+  // City
+  ctx.font='400 36px Inter,sans-serif'; ctx.fillStyle='rgba(255,255,255,0.4)';
+  ctx.fillText(m.city,W/2,iy+212);
+
+  // Thin divider inside panel
+  ctx.strokeStyle='rgba(255,255,255,0.08)'; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(120,iy+250); ctx.lineTo(W-120,iy+250); ctx.stroke();
+
+  // Who backs who CTA
+  ctx.font='700 44px Bebas Neue,sans-serif'; ctx.fillStyle='rgba(255,255,255,0.5)';
+  ctx.letterSpacing='3px'; ctx.fillText('WHO ARE YOU BACKING?',W/2,iy+320); ctx.letterSpacing='0px';
+  ctx.font='500 30px Inter,sans-serif'; ctx.fillStyle='rgba(255,255,255,0.25)';
+  ctx.fillText('Drop your pick in the comments',W/2,iy+372);
+
+  // Hosts line
+  ctx.font='500 28px Inter,sans-serif'; ctx.fillStyle='rgba(201,168,76,0.4)';
+  ctx.fillText('USA  ·  Canada  ·  Mexico',W/2,H-130);
+
   mcDrawWatermark(ctx);
 }
 
-// ── ORACLE ──
+// ── ORACLE — redesigned ──
 function mcDrawOracle(ctx,m){
-  mcDrawBase(ctx,'#050810','#0a0c18');mcDrawSplit(ctx,m.c1,m.c2,0.14);mcDrawGoldBars(ctx);
-  ctx.font='700 30px Inter,sans-serif';ctx.fillStyle='rgba(201,168,76,0.8)';ctx.textAlign='center';
-  ctx.fillText('THE AI ORACLE PREDICTS',MCW/2,110);
-  ctx.font='600 22px Inter,sans-serif';ctx.fillStyle='rgba(255,255,255,0.25)';
-  ctx.fillText('FIFA WORLD CUP 2026',MCW/2,150);
-  mcDrawStagePill(ctx,m.stage,210);
-  const ox=MCW/2,oy=700,or=260;
+  const W=MCW,H=MCH;
+  // Deep space BG with team color tints
+  ctx.fillStyle='#050810'; ctx.fillRect(0,0,W,H);
+  const lg=ctx.createLinearGradient(0,0,W/2,0);
+  lg.addColorStop(0,mcHex2rgba(m.c1||'#006847',0.18)); lg.addColorStop(1,'rgba(0,0,0,0)');
+  ctx.fillStyle=lg; ctx.fillRect(0,0,W,H);
+  const rg2=ctx.createLinearGradient(W,0,W/2,0);
+  rg2.addColorStop(0,mcHex2rgba(m.c2||'#007A4D',0.18)); rg2.addColorStop(1,'rgba(0,0,0,0)');
+  ctx.fillStyle=rg2; ctx.fillRect(0,0,W,H);
+  ctx.strokeStyle='rgba(255,255,255,0.025)'; ctx.lineWidth=1;
+  for(let y=0;y<H;y+=90){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
+
+  const gb=ctx.createLinearGradient(0,0,W,0);
+  gb.addColorStop(0,'#6b4e10');gb.addColorStop(0.5,'#e8c96a');gb.addColorStop(1,'#6b4e10');
+  ctx.fillStyle=gb; ctx.fillRect(0,0,W,12); ctx.fillRect(0,H-12,W,12);
+
+  ctx.font='700 34px Inter,sans-serif'; ctx.fillStyle='rgba(201,168,76,0.85)';
+  ctx.textAlign='center'; ctx.fillText('THE AI ORACLE PREDICTS',W/2,85);
+  ctx.font='600 24px Inter,sans-serif'; ctx.fillStyle='rgba(255,255,255,0.25)';
+  ctx.fillText('FIFA WORLD CUP 2026',W/2,125);
+  mcDrawStagePill(ctx,m.stage,190);
+
+  // Glowing orb center
+  const ox=W/2,oy=660,or=300;
   const og=ctx.createRadialGradient(ox,oy,0,ox,oy,or);
-  og.addColorStop(0,'rgba(201,168,76,0.2)');og.addColorStop(1,'rgba(0,0,0,0)');
-  ctx.fillStyle=og;ctx.beginPath();ctx.arc(ox,oy,or,0,Math.PI*2);ctx.fill();
-  ctx.strokeStyle='rgba(201,168,76,0.35)';ctx.lineWidth=1.5;
-  ctx.beginPath();ctx.arc(ox,oy,or-8,0,Math.PI*2);ctx.stroke();
-  mcDrawFlag(ctx,m.f1,MCW/4,560,120);
-  ctx.font='700 62px Bebas Neue,sans-serif';ctx.fillStyle='rgba(255,255,255,0.9)';ctx.textAlign='center';
-  ctx.fillText(m.t1.toUpperCase(),MCW/4,680);
-  mcDrawFlag(ctx,m.f2,3*MCW/4,560,120);
-  ctx.font='700 62px Bebas Neue,sans-serif';ctx.fillText(m.t2.toUpperCase(),3*MCW/4,680);
-  ctx.font='700 120px Bebas Neue,sans-serif';ctx.fillStyle='#c9a84c';
-  ctx.shadowColor='rgba(201,168,76,0.5)';ctx.shadowBlur=24;ctx.fillText('VS',MCW/2,760);ctx.shadowBlur=0;
-  ctx.font='700 52px Bebas Neue,sans-serif';ctx.fillStyle='rgba(255,255,255,0.6)';
-  ctx.fillText('WHO WINS?',MCW/2,870);
+  og.addColorStop(0,'rgba(201,168,76,0.18)'); og.addColorStop(0.6,'rgba(201,168,76,0.05)'); og.addColorStop(1,'rgba(0,0,0,0)');
+  ctx.fillStyle=og; ctx.beginPath(); ctx.arc(ox,oy,or,0,Math.PI*2); ctx.fill();
+  ctx.strokeStyle='rgba(201,168,76,0.3)'; ctx.lineWidth=1.5;
+  ctx.beginPath(); ctx.arc(ox,oy,or-10,0,Math.PI*2); ctx.stroke();
+  ctx.strokeStyle='rgba(201,168,76,0.1)'; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.arc(ox,oy,or+40,0,Math.PI*2); ctx.stroke();
+
+  // Teams flanking orb
+  mcDrawFlag(ctx,m.f1,W/4,520,130); 
+  ctx.font='700 70px Bebas Neue,sans-serif'; ctx.fillStyle='rgba(255,255,255,0.9)'; ctx.textAlign='center';
+  ctx.fillText(m.t1.toUpperCase(),W/4,680);
+  mcDrawFlag(ctx,m.f2,3*W/4,520,130);
+  ctx.font='700 70px Bebas Neue,sans-serif'; ctx.fillText(m.t2.toUpperCase(),3*W/4,680);
+
+  // VS in orb
+  ctx.font='700 130px Bebas Neue,sans-serif'; ctx.fillStyle='#c9a84c';
+  ctx.shadowColor='rgba(201,168,76,0.6)'; ctx.shadowBlur=28; ctx.fillText('VS',W/2,700); ctx.shadowBlur=0;
+
+  ctx.font='700 56px Bebas Neue,sans-serif'; ctx.fillStyle='rgba(255,255,255,0.6)';
+  ctx.fillText('WHO WINS?',W/2,800);
+
+  // Processing bars
   ['ANALYZING FORM...','SCANNING HISTORY...','PROCESSING ODDS...'].forEach((txt,i)=>{
-    const y=970+i*80;
-    ctx.fillStyle='rgba(255,255,255,0.06)';mcRoundRect(ctx,MCW/2-330,y-28,660,44,22);ctx.fill();
-    ctx.fillStyle='rgba(201,168,76,0.25)';mcRoundRect(ctx,MCW/2-330,y-28,220+i*80,44,22);ctx.fill();
-    ctx.font='600 22px Inter,sans-serif';ctx.fillStyle='rgba(255,255,255,0.4)';ctx.textAlign='left';
-    ctx.fillText(txt,MCW/2-310,y+6);
+    const y=900+i*90;
+    ctx.fillStyle='rgba(255,255,255,0.05)'; mcRoundRect(ctx,W/2-360,y-28,720,52,26); ctx.fill();
+    ctx.fillStyle='rgba(201,168,76,0.2)'; mcRoundRect(ctx,W/2-360,y-28,180+i*120,52,26); ctx.fill();
+    ctx.font='600 24px Inter,sans-serif'; ctx.fillStyle='rgba(255,255,255,0.4)'; ctx.textAlign='left';
+    ctx.fillText(txt,W/2-340,y+8);
   });
-  mcSepLine(ctx,1240);
-  ctx.font='700 34px Inter,sans-serif';ctx.fillStyle='rgba(255,255,255,0.35)';ctx.textAlign='center';
-  ctx.fillText("ORACLE'S VERDICT",MCW/2,1295);
-  ctx.font='700 260px Bebas Neue,sans-serif';ctx.fillStyle='rgba(201,168,76,0.12)';
-  ctx.fillText('?',MCW/2,1590);
-  ctx.font='600 32px Inter,sans-serif';ctx.fillStyle='rgba(255,255,255,0.3)';
-  ctx.fillText('Watch the video to find out',MCW/2,1640);
-  ctx.font='600 36px Inter,sans-serif';ctx.fillStyle='rgba(201,168,76,0.7)';
-  ctx.fillText(m.date+(m.time!=='TBD'?' · '+m.time:''),MCW/2,MCH-190);
-  ctx.font='400 30px Inter,sans-serif';ctx.fillStyle='rgba(255,255,255,0.3)';
-  ctx.fillText(m.city,MCW/2,MCH-148);
+
+  // Verdict section
+  mcSepLine(ctx,1190);
+  ctx.font='700 38px Inter,sans-serif'; ctx.fillStyle='rgba(255,255,255,0.35)'; ctx.textAlign='center';
+  ctx.fillText("ORACLE'S VERDICT",W/2,1260);
+  ctx.font='700 300px Bebas Neue,sans-serif'; ctx.fillStyle='rgba(201,168,76,0.1)';
+  ctx.fillText('?',W/2,1580);
+  ctx.font='600 34px Inter,sans-serif'; ctx.fillStyle='rgba(255,255,255,0.28)';
+  ctx.fillText('Watch the video to find out',W/2,1640);
+
+  ctx.font='600 40px Inter,sans-serif'; ctx.fillStyle='rgba(201,168,76,0.7)';
+  ctx.fillText(m.date+(m.time!=='TBD'?' · '+m.time:''),W/2,H-190);
+  ctx.font='400 32px Inter,sans-serif'; ctx.fillStyle='rgba(255,255,255,0.3)';
+  ctx.fillText(m.city,W/2,H-148);
   mcDrawWatermark(ctx);
 }
 
-// ── HYPE ──
+// ── HYPE — redesigned ──
 function mcDrawHype(ctx,m){
-  mcDrawBase(ctx,'#0c0a04','#1a1408');mcDrawSplit(ctx,m.c1,m.c2,0.22);mcDrawGoldBars(ctx);
-  ctx.font='600 28px Inter,sans-serif';ctx.fillStyle='rgba(201,168,76,0.65)';ctx.textAlign='center';
-  ctx.fillText('FIFA WORLD CUP 2026',MCW/2,100);
-  ctx.font='700 140px Bebas Neue,sans-serif';ctx.fillStyle='#c9a84c';
-  ctx.shadowColor='rgba(201,168,76,0.4)';ctx.shadowBlur=28;ctx.fillText('GAME DAY',MCW/2,270);ctx.shadowBlur=0;
-  mcDrawStagePill(ctx,m.stage,335);
-  mcDrawFlag(ctx,m.f1,MCW/4,530,140);mcDrawTeamName(ctx,m.t1,MCW/4,710);
-  const vg=ctx.createLinearGradient(MCW/2-100,890,MCW/2+100,1040);
-  vg.addColorStop(0,'#ffdd44');vg.addColorStop(0.5,'#ff6600');vg.addColorStop(1,'#c9a84c');
-  ctx.font='700 200px Bebas Neue,sans-serif';ctx.fillStyle=vg;
-  ctx.shadowColor='rgba(255,100,0,0.4)';ctx.shadowBlur=36;ctx.fillText('VS',MCW/2,1020);ctx.shadowBlur=0;
-  mcDrawFlag(ctx,m.f2,3*MCW/4,530,140);mcDrawTeamName(ctx,m.t2,3*MCW/4,710);
-  mcSepLine(ctx,1080);
-  ctx.font='700 68px Bebas Neue,sans-serif';ctx.fillStyle='#ffffff';ctx.textAlign='center';
-  ctx.fillText(m.date.toUpperCase(),MCW/2,1160);
-  if(m.time!=='TBD'){ctx.font='700 62px Bebas Neue,sans-serif';ctx.fillStyle='#c9a84c';ctx.fillText(m.time,MCW/2,1240);}
-  ctx.font='400 38px Inter,sans-serif';ctx.fillStyle='rgba(255,255,255,0.45)';ctx.fillText(m.venue,MCW/2,1310);
-  ctx.font='400 32px Inter,sans-serif';ctx.fillStyle='rgba(255,255,255,0.3)';ctx.fillText(m.city,MCW/2,1358);
-  ctx.font='700 50px Bebas Neue,sans-serif';ctx.fillStyle='rgba(201,168,76,0.8)';
-  ctx.fillText('WHO ARE YOU BACKING?',MCW/2,MCH-195);
-  ctx.font='500 34px Inter,sans-serif';ctx.fillStyle='rgba(255,255,255,0.3)';
-  ctx.fillText('Drop your pick in the comments',MCW/2,MCH-148);
+  const W=MCW,H=MCH;
+  // Full bleed halves again — more aggressive alpha
+  ctx.fillStyle=m.c1||'#1a1a1a'; ctx.fillRect(0,0,W/2,H);
+  ctx.fillStyle=m.c2||'#1a1a1a'; ctx.fillRect(W/2,0,W/2,H);
+  ctx.fillStyle='rgba(0,0,0,0.58)'; ctx.fillRect(0,0,W,H);
+  ctx.strokeStyle='rgba(255,255,255,0.025)'; ctx.lineWidth=1;
+  for(let y=0;y<H;y+=90){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
+
+  const gb=ctx.createLinearGradient(0,0,W,0);
+  gb.addColorStop(0,'#6b4e10');gb.addColorStop(0.5,'#e8c96a');gb.addColorStop(1,'#6b4e10');
+  ctx.fillStyle=gb; ctx.fillRect(0,0,W,12); ctx.fillRect(0,H-12,W,12);
+
+  ctx.font='700 160px Bebas Neue,sans-serif'; ctx.fillStyle='#c9a84c'; ctx.textAlign='center';
+  ctx.shadowColor='rgba(201,168,76,0.45)'; ctx.shadowBlur=30;
+  ctx.fillText('GAME DAY',W/2,190); ctx.shadowBlur=0;
+
+  ctx.font='600 30px Inter,sans-serif'; ctx.fillStyle='rgba(255,255,255,0.5)';
+  ctx.fillText('FIFA WORLD CUP 2026',W/2,240);
+  mcDrawStagePill(ctx,m.stage,300);
+
+  // Large flags
+  mcDrawFlag(ctx,m.f1,W/4,540,200); 
+  const nf1=m.t1.toUpperCase(); const fsf1=nf1.length>10?72:nf1.length>7?88:104;
+  ctx.font=`700 ${fsf1}px Bebas Neue,sans-serif`; ctx.fillStyle='#ffffff'; ctx.textAlign='center';
+  ctx.shadowColor='rgba(0,0,0,0.7)'; ctx.shadowBlur=12;
+  ctx.fillText(nf1,W/4,788); ctx.shadowBlur=0;
+
+  mcDrawFlag(ctx,m.f2,3*W/4,540,200);
+  const nf2=m.t2.toUpperCase(); const fsf2=nf2.length>10?72:nf2.length>7?88:104;
+  ctx.font=`700 ${fsf2}px Bebas Neue,sans-serif`; ctx.fillStyle='#ffffff'; ctx.textAlign='center';
+  ctx.shadowColor='rgba(0,0,0,0.7)'; ctx.shadowBlur=12;
+  ctx.fillText(nf2,3*W/4,788); ctx.shadowBlur=0;
+
+  // Fire VS badge
+  const vx2=W/2,vy2=1000,vr2=140;
+  ctx.beginPath(); ctx.arc(vx2,vy2,vr2,0,Math.PI*2);
+  ctx.fillStyle='rgba(6,10,16,0.9)'; ctx.fill();
+  ctx.strokeStyle='rgba(255,140,0,0.7)'; ctx.lineWidth=3;
+  ctx.beginPath(); ctx.arc(vx2,vy2,vr2,0,Math.PI*2); ctx.stroke();
+  const vg=ctx.createLinearGradient(vx2-80,vy2-60,vx2+80,vy2+60);
+  vg.addColorStop(0,'#ffdd44'); vg.addColorStop(0.5,'#ff6600'); vg.addColorStop(1,'#c9a84c');
+  ctx.font='700 160px Bebas Neue,sans-serif'; ctx.fillStyle=vg; ctx.textAlign='center';
+  ctx.shadowColor='rgba(255,100,0,0.5)'; ctx.shadowBlur=36;
+  ctx.fillText('VS',vx2,vy2+58); ctx.shadowBlur=0;
+
+  // Info block
+  const iy2=1200, ih2=420;
+  ctx.fillStyle='rgba(0,0,0,0.55)';
+  mcRoundRect(ctx,60,iy2,W-120,ih2,20); ctx.fill();
+  ctx.strokeStyle='rgba(201,168,76,0.2)'; ctx.lineWidth=1.5;
+  mcRoundRect(ctx,60,iy2,W-120,ih2,20); ctx.stroke();
+
+  ctx.font='700 72px Bebas Neue,sans-serif'; ctx.fillStyle='#ffffff'; ctx.textAlign='center';
+  ctx.letterSpacing='3px'; ctx.fillText(m.date.toUpperCase(),W/2,iy2+90); ctx.letterSpacing='0px';
+  if(m.time!=='TBD'){ctx.font='700 64px Bebas Neue,sans-serif'; ctx.fillStyle='#c9a84c'; ctx.fillText(m.time,W/2,iy2+168);}
+  ctx.font='500 38px Inter,sans-serif'; ctx.fillStyle='rgba(255,255,255,0.6)';
+  ctx.fillText(m.venue,W/2,iy2+(m.time!=='TBD'?238:188));
+  ctx.font='400 34px Inter,sans-serif'; ctx.fillStyle='rgba(255,255,255,0.35)';
+  ctx.fillText(m.city,W/2,iy2+(m.time!=='TBD'?286:232));
+
+  ctx.font='700 46px Bebas Neue,sans-serif'; ctx.fillStyle='rgba(201,168,76,0.8)';
+  ctx.letterSpacing='2px'; ctx.fillText('WHO ARE YOU BACKING?',W/2,H-130); ctx.letterSpacing='0px';
+  ctx.font='500 30px Inter,sans-serif'; ctx.fillStyle='rgba(255,255,255,0.25)';
+  ctx.fillText('Drop your pick below',W/2,H-84);
   mcDrawWatermark(ctx);
 }
 
@@ -1732,16 +1935,17 @@ function mcDrawQuote(ctx,m){
 }
 
 // ── SAVE / COPY ──
-function mcSavePNG(){
+async function mcSavePNG(){
   if(!mcSelectedMatch){showToast('Select a match first');return;}
-  mcRender();
+  await mcRender();
   const canvas=document.getElementById('mc-canvas');
   const name='WC2026_'+mcSelectedMatch.t1.replace(/\s+/g,'')+'_vs_'+mcSelectedMatch.t2.replace(/\s+/g,'')+'_'+mcTemplate+'.png';
   const a=document.createElement('a');a.download=name;a.href=canvas.toDataURL('image/png');a.click();
   showToast('PNG saved!');
 }
-function mcCopyCanvas(){
-  if(!mcSelectedMatch)return;mcRender();
+async function mcCopyCanvas(){
+  if(!mcSelectedMatch)return;
+  await mcRender();
   document.getElementById('mc-canvas').toBlob(async blob=>{
     try{await navigator.clipboard.write([new ClipboardItem({'image/png':blob})]);showToast('Copied!');}
     catch(e){showToast('Use Save PNG instead');}
@@ -1927,26 +2131,21 @@ function rcGetColor(code){return RC_FLAG_COLORS[code?code.toUpperCase():'']||'#4
 function rcRR(ctx,x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.lineTo(x+w-r,y);ctx.quadraticCurveTo(x+w,y,x+w,y+r);ctx.lineTo(x+w,y+h-r);ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);ctx.lineTo(x+r,y+h);ctx.quadraticCurveTo(x,y+h,x,y+h-r);ctx.lineTo(x,y+r);ctx.quadraticCurveTo(x,y,x+r,y);ctx.closePath();}
 function rcWT(ctx,text,x,y,maxW,lh){const words=text.split(' ');let line='',cy=y;for(let i=0;i<words.length;i++){const t=line+words[i]+' ';if(ctx.measureText(t).width>maxW&&i>0){ctx.fillText(line.trim(),x,cy);line=words[i]+' ';cy+=lh;}else line=t;}ctx.fillText(line.trim(),x,cy);}
 function rcFlagBox(ctx,code,cx,cy,sz){
-  const col=rcGetColor(code),bw=sz*1.5,bh=sz;
-  rcRR(ctx,cx-bw/2,cy-bh/2,bw,bh,14);ctx.fillStyle=col;ctx.fill();
-  ctx.strokeStyle='rgba(255,255,255,0.15)';ctx.lineWidth=2;
-  rcRR(ctx,cx-bw/2,cy-bh/2,bw,bh,14);ctx.stroke();
-  ctx.font=`700 ${Math.round(sz*0.42)}px Inter,sans-serif`;
-  ctx.fillStyle='rgba(255,255,255,0.92)';ctx.textAlign='center';
-  ctx.fillText(code&&code.length?code.toUpperCase():'?',cx,cy+sz*0.15);
+  drawFlagImage(ctx, code, cx, cy, sz*1.5, sz, 14);
 }
 
 // ── Main render ──
-function rcRenderCard(){
+async function rcRenderCard(){
   const canvas=document.getElementById('rcCanvas');
   if(!canvas)return;
+  const c1=(document.getElementById('rc-c1').value.trim()||'').toUpperCase();
+  const c2=(document.getElementById('rc-c2').value.trim()||'').toUpperCase();
+  await preloadFlags([c1, c2]);
   const ctx=canvas.getContext('2d');
   ctx.clearRect(0,0,RC_CW,RC_CH);
 
   const t1=document.getElementById('rc-t1').value.trim()||'Team 1';
   const t2=document.getElementById('rc-t2').value.trim()||'Team 2';
-  const c1=(document.getElementById('rc-c1').value.trim()||'T1').toUpperCase();
-  const c2=(document.getElementById('rc-c2').value.trim()||'T2').toUpperCase();
   const s1=parseInt(document.getElementById('rc-s1').value)||0;
   const s2=parseInt(document.getElementById('rc-s2').value)||0;
   const stage=document.getElementById('rc-stage').value;
@@ -2120,8 +2319,8 @@ function rcRenderCard(){
   rcDrawPlatformOverlay(document.getElementById('rcPreviewWrap').offsetWidth);
 }
 
-function rcSavePNG(){
-  rcRenderCard();
+async function rcSavePNG(){
+  await rcRenderCard();
   const canvas=document.getElementById('rcCanvas');
   const t1=(document.getElementById('rc-t1').value||'Team1').replace(/\s/g,'');
   const t2=(document.getElementById('rc-t2').value||'Team2').replace(/\s/g,'');
@@ -2133,8 +2332,8 @@ function rcSavePNG(){
   showToast('Result card saved!');
 }
 
-function rcCopy(){
-  rcRenderCard();
+async function rcCopy(){
+  await rcRenderCard();
   document.getElementById('rcCanvas').toBlob(async blob=>{
     try{await navigator.clipboard.write([new ClipboardItem({'image/png':blob})]);showToast('Copied!');}
     catch(e){showToast('Use Save PNG instead');}
