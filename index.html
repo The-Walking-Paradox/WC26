@@ -1,0 +1,1095 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WC 2026 Content Studio</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap');
+  :root {
+    --pitch:#0a0a0a; --surface:#111111; --card:#181818; --border:#2a2a2a;
+    --accent:#c9a84c; --accent2:#e8c96a; --green:#1a9e52; --red:#d93025;
+    --text:#f0f0f0; --muted:#888; --dim:#555;
+    --font-d:'Bebas Neue',sans-serif; --font-b:'Inter',sans-serif; --font-m:'Space Mono',monospace;
+    --r:8px; --rl:14px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{background:var(--pitch);color:var(--text);font-family:var(--font-b);font-size:14px;min-height:100vh;}
+  header{border-bottom:1px solid var(--border);padding:14px 20px;display:flex;align-items:center;gap:14px;background:var(--surface);position:sticky;top:0;z-index:100;}
+  .logo{font-family:var(--font-d);font-size:28px;color:var(--accent);letter-spacing:2px;line-height:1;}
+  .logo-sub{font-size:11px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;}
+  .logo-sub strong{color:var(--accent);}
+  .tabs{display:flex;gap:2px;padding:12px 20px 0;background:var(--surface);border-bottom:1px solid var(--border);overflow-x:auto;scrollbar-width:none;}
+  .tabs::-webkit-scrollbar{display:none;}
+  .tab-btn{padding:8px 16px;background:none;border:none;border-bottom:2px solid transparent;color:var(--muted);font-family:var(--font-b);font-size:13px;font-weight:500;cursor:pointer;white-space:nowrap;transition:color .15s,border-color .15s;}
+  .tab-btn:hover{color:var(--text);}
+  .tab-btn.active{color:var(--accent);border-bottom-color:var(--accent);}
+  .main{padding:20px;max-width:900px;margin:0 auto;}
+  .panel{display:none;} .panel.active{display:block;}
+  .sec-title{font-family:var(--font-d);font-size:30px;color:var(--accent);letter-spacing:2px;line-height:1;margin-bottom:4px;}
+  .sec-desc{font-size:13px;color:var(--muted);margin-bottom:18px;}
+  .form-group{margin-bottom:14px;}
+  .form-label{display:block;font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:6px;}
+  input,select,textarea{width:100%;background:var(--card);border:1px solid var(--border);border-radius:var(--r);color:var(--text);font-family:var(--font-b);font-size:14px;padding:10px 12px;outline:none;transition:border-color .15s;}
+  input:focus,select:focus,textarea:focus{border-color:var(--accent);}
+  select option{background:var(--card);}
+  textarea{resize:vertical;min-height:70px;}
+  .form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  @media(max-width:520px){.form-row{grid-template-columns:1fr;}}
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:11px 20px;border-radius:var(--r);font-family:var(--font-b);font-size:13px;font-weight:600;cursor:pointer;border:none;transition:opacity .15s,transform .1s;letter-spacing:.03em;}
+  .btn:active{transform:scale(.97);}
+  .btn-primary{background:var(--accent);color:#000;}
+  .btn-secondary{background:var(--card);color:var(--text);border:1px solid var(--border);}
+  .btn-green{background:var(--green);color:#fff;}
+  .btn-red{background:var(--red);color:#fff;}
+  .btn-sm{padding:7px 14px;font-size:12px;}
+  .btn:disabled{opacity:.4;cursor:not-allowed;}
+  .btn-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px;}
+  .output-box{background:var(--card);border:1px solid var(--border);border-radius:var(--rl);padding:16px;margin-top:14px;position:relative;}
+  .output-label{font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin-bottom:10px;}
+  .output-text{font-size:13px;line-height:1.7;color:var(--text);white-space:pre-wrap;word-break:break-word;}
+  .copy-btn{position:absolute;top:12px;right:12px;background:var(--border);border:none;border-radius:6px;color:var(--muted);font-size:11px;padding:4px 10px;cursor:pointer;}
+  .copy-btn:hover{background:var(--dim);color:var(--text);}
+  .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;}
+  .chip{background:var(--border);border-radius:20px;padding:3px 10px;font-size:12px;color:var(--muted);cursor:pointer;transition:background .12s,color .12s;border:1px solid transparent;}
+  .chip:hover,.chip.active{background:rgba(201,168,76,.15);color:var(--accent);border-color:rgba(201,168,76,.3);}
+  .spinner{display:inline-block;width:16px;height:16px;border:2px solid rgba(201,168,76,.3);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+  .hashtag-box{background:rgba(201,168,76,.07);border:1px solid rgba(201,168,76,.2);border-radius:var(--r);padding:10px 12px;font-family:var(--font-m);font-size:12px;color:var(--accent2);line-height:1.8;margin-top:10px;word-break:break-all;}
+  .divider{border:none;border-top:1px solid var(--border);margin:20px 0;}
+  .info-box{background:rgba(201,168,76,.08);border:1px solid rgba(201,168,76,.2);border-radius:var(--r);padding:12px 16px;margin-bottom:18px;font-size:13px;line-height:1.7;color:var(--muted);}
+  .info-box strong{color:var(--accent);}
+  /* Canvas / stat card */
+  .card-studio{display:grid;grid-template-columns:1fr 340px;gap:20px;align-items:start;}
+  @media(max-width:720px){.card-studio{grid-template-columns:1fr;}}
+  .canvas-wrap{position:relative;aspect-ratio:9/16;border-radius:var(--rl);overflow:hidden;background:#000;box-shadow:0 0 0 1px var(--border);}
+  #statCanvas{width:100%;height:100%;display:block;}
+  /* Calendar */
+  .cal-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin-top:12px;}
+  .cal-day{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:12px;cursor:pointer;transition:border-color .15s;}
+  .cal-day:hover,.cal-day.match-day{border-color:rgba(201,168,76,.4);}
+  .cal-date{font-size:10px;color:var(--muted);margin-bottom:4px;font-family:var(--font-m);}
+  .cal-idea{font-size:12px;color:var(--text);line-height:1.4;}
+  .cal-format{display:inline-block;margin-top:6px;font-size:10px;padding:2px 7px;border-radius:10px;background:var(--border);color:var(--muted);}
+  .match-tag{font-size:10px;color:var(--accent);font-weight:600;margin-bottom:3px;font-family:var(--font-m);}
+  /* Oracle scoreboard */
+  .score-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px;}
+  .score-card{background:var(--card);border-radius:var(--r);padding:14px;text-align:center;}
+  .score-num{font-size:32px;font-weight:700;}
+  .score-label{font-size:11px;color:var(--muted);}
+  /* Story sparks */
+  .spark-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;}
+  .spark-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:10px 12px;cursor:pointer;transition:border-color .15s;}
+  .spark-card:hover{border-color:rgba(201,168,76,.5);}
+  /* Toast */
+  #toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--accent);color:#000;font-size:13px;font-weight:600;padding:10px 22px;border-radius:30px;opacity:0;transition:opacity .2s,transform .2s;pointer-events:none;z-index:999;}
+  #toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">WC2026</div>
+  <div>
+    <div style="font-size:13px;font-weight:600;letter-spacing:.05em;">CONTENT STUDIO</div>
+    <div class="logo-sub">Jun 11 – Jul 19 &nbsp;·&nbsp; <strong>48 teams · 104 matches</strong></div>
+  </div>
+  <div style="margin-left:auto;font-family:var(--font-m);font-size:12px;color:var(--accent);" id="headerTimer">--</div>
+</header>
+
+<div class="tabs">
+  <button class="tab-btn active" id="tab-scripts" onclick="switchTab('scripts',this)">📝 Script</button>
+  <button class="tab-btn" id="tab-statcard" onclick="switchTab('statcard',this)">⚡ Stat Card</button>
+  <button class="tab-btn" id="tab-prediction" onclick="switchTab('prediction',this)">🏆 Prediction</button>
+  <button class="tab-btn" id="tab-oracle" onclick="switchTab('oracle',this)">🔮 AI Oracle</button>
+  <button class="tab-btn" id="tab-human" onclick="switchTab('human',this)">❤️ Human Story</button>
+  <button class="tab-btn" id="tab-calendar" onclick="switchTab('calendar',this)">📅 Calendar</button>
+  <button class="tab-btn" id="tab-hashtags" onclick="switchTab('hashtags',this)">🔥 Hashtags</button>
+</div>
+
+<div class="main">
+
+<!-- ══ TAB 1: SCRIPT GENERATOR ══ -->
+<div id="panel-scripts" class="panel active">
+  <div class="sec-title">SCRIPT GENERATOR</div>
+  <div class="sec-desc">AI-powered hooks, scripts, captions & hashtags for every format</div>
+  <div class="form-row">
+    <div class="form-group">
+      <label class="form-label">Content format</label>
+      <select id="sg-format">
+        <option value="hot_take">🔥 Hot take / reaction</option>
+        <option value="stat_reveal">⚡ Stat reveal</option>
+        <option value="prediction">🏆 Bold AI prediction</option>
+        <option value="prediction_fail">💀 Prediction FAIL (accountability)</option>
+        <option value="dark_horse">🐴 Dark horse team</option>
+        <option value="history">📖 WC history moment</option>
+        <option value="unknown_fact">🤯 Fact nobody knows</option>
+        <option value="fan_psychology">👥 Fan psychology / emotion</option>
+        <option value="what_if">✨ What if? (AI scenario)</option>
+        <option value="debate">💬 Debate bait</option>
+        <option value="daily_wrap">📋 Daily match wrap</option>
+        <option value="human_story">❤️ Human story (not score)</option>
+        <option value="nepali_angle">🇳🇵 Nepal / diaspora angle</option>
+        <option value="countdown">⏱ Countdown hype</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Video style</label>
+      <select id="sg-style">
+        <option value="face_cam">🎙 Face-cam / commentary</option>
+        <option value="voiceover">🎤 Voiceover (faceless)</option>
+        <option value="text_only">📱 Text-on-screen only</option>
+      </select>
+    </div>
+  </div>
+  <div class="form-group">
+    <label class="form-label">Topic / match / team</label>
+    <input type="text" id="sg-topic" placeholder="e.g. Brazil vs Argentina Group C, or Morocco upset chances">
+  </div>
+  <div class="form-group">
+    <label class="form-label">Your angle (optional)</label>
+    <input type="text" id="sg-angle" placeholder="e.g. I think USA will surprise everyone — or leave blank">
+  </div>
+  <div class="form-group">
+    <label class="form-label">Tone</label>
+    <div class="chips">
+      <span class="chip active" data-group="tone" data-val="hype">🔥 Hype</span>
+      <span class="chip" data-group="tone" data-val="analytical">🧠 Analytical</span>
+      <span class="chip" data-group="tone" data-val="controversial">⚡ Controversial</span>
+      <span class="chip" data-group="tone" data-val="humour">😂 Humour</span>
+      <span class="chip" data-group="tone" data-val="emotional">❤️ Emotional</span>
+    </div>
+  </div>
+  <div class="btn-row">
+    <button class="btn btn-primary" id="sg-btn" onclick="generateScript()">Generate script</button>
+    <button class="btn btn-secondary btn-sm" onclick="generateScript()">Regenerate</button>
+  </div>
+  <div id="sg-output" style="display:none">
+    <div class="output-box">
+      <div class="output-label">⚡ HOOK — First 1.5 seconds</div>
+      <button class="copy-btn" onclick="copyEl('sg-hook')">Copy</button>
+      <div class="output-text" id="sg-hook"></div>
+    </div>
+    <div class="output-box">
+      <div class="output-label">📢 SCRIPT BODY</div>
+      <button class="copy-btn" onclick="copyEl('sg-body')">Copy</button>
+      <div class="output-text" id="sg-body"></div>
+    </div>
+    <div class="output-box">
+      <div class="output-label">💬 CAPTION + CTA</div>
+      <button class="copy-btn" onclick="copyEl('sg-caption')">Copy</button>
+      <div class="output-text" id="sg-caption"></div>
+    </div>
+    <div class="hashtag-box" id="sg-tags"></div>
+  </div>
+</div>
+
+<!-- ══ TAB 2: STAT CARD ══ -->
+<div id="panel-statcard" class="panel">
+  <div class="sec-title">STAT CARD MAKER</div>
+  <div class="sec-desc">Animated 9:16 cards ready for TikTok — PNG or video export</div>
+  <div class="card-studio">
+    <div>
+      <div class="form-group">
+        <label class="form-label">Card type</label>
+        <select id="sc-type" onchange="onCardTypeChange()">
+          <option value="big_stat">Big stat reveal</option>
+          <option value="vs_card">Team vs Team</option>
+          <option value="countdown">Match countdown</option>
+          <option value="fact_drop">Fast fact</option>
+        </select>
+      </div>
+      <div id="sc-fields-big_stat">
+        <div class="form-group"><label class="form-label">The number / stat</label><input type="text" id="sc-stat-num" value="8" oninput="renderCard()"></div>
+        <div class="form-group"><label class="form-label">Stat label</label><input type="text" id="sc-stat-label" value="World Cup goals by Ronaldo" oninput="renderCard()"></div>
+        <div class="form-group"><label class="form-label">Source / context</label><input type="text" id="sc-stat-source" value="Most by any European player ever" oninput="renderCard()"></div>
+      </div>
+      <div id="sc-fields-vs_card" style="display:none">
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">Team 1</label><input type="text" id="sc-team1" value="BRAZIL" oninput="renderCard()"></div>
+          <div class="form-group"><label class="form-label">Team 2</label><input type="text" id="sc-team2" value="ARGENTINA" oninput="renderCard()"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">Flag 1</label><input type="text" id="sc-flag1" value="🇧🇷" oninput="renderCard()"></div>
+          <div class="form-group"><label class="form-label">Flag 2</label><input type="text" id="sc-flag2" value="🇦🇷" oninput="renderCard()"></div>
+        </div>
+        <div class="form-group"><label class="form-label">Date & time</label><input type="text" id="sc-matchdate" value="Jun 26 · 9PM ET" oninput="renderCard()"></div>
+        <div class="form-group"><label class="form-label">Venue</label><input type="text" id="sc-venue" value="MetLife Stadium, NJ" oninput="renderCard()"></div>
+      </div>
+      <div id="sc-fields-countdown" style="display:none">
+        <div class="form-group"><label class="form-label">Event name</label><input type="text" id="sc-cd-event" value="World Cup 2026 Kickoff" oninput="renderCard()"></div>
+        <div class="form-group"><label class="form-label">Target date/time</label><input type="datetime-local" id="sc-cd-date" oninput="renderCard()"></div>
+      </div>
+      <div id="sc-fields-fact_drop" style="display:none">
+        <div class="form-group"><label class="form-label">Headline</label><input type="text" id="sc-fact-head" value="DID YOU KNOW?" oninput="renderCard()"></div>
+        <div class="form-group"><label class="form-label">Fact body</label><textarea id="sc-fact-body" oninput="renderCard()">Only 8 countries have ever won the World Cup.</textarea></div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Accent color</label>
+        <div class="chips">
+          <span class="chip active" data-group="accent" data-color="#c9a84c">Gold</span>
+          <span class="chip" data-group="accent" data-color="#1a9e52">Green</span>
+          <span class="chip" data-group="accent" data-color="#4488ff">Blue</span>
+          <span class="chip" data-group="accent" data-color="#d93025">Red</span>
+          <span class="chip" data-group="accent" data-color="#ffffff">White</span>
+        </div>
+      </div>
+      <div class="form-group"><label class="form-label">Watermark</label><input type="text" id="sc-watermark" value="@WC2026Updates" oninput="renderCard()"></div>
+      <div class="btn-row">
+        <button class="btn btn-primary btn-sm" onclick="exportPNG('statCanvas','wc2026-card.png')">📥 PNG</button>
+        <button class="btn btn-green btn-sm" onclick="exportVideo('statCanvas','wc2026-card')">🎬 Video</button>
+      </div>
+      <div id="sc-status" style="font-size:11px;color:var(--muted);margin-top:8px;"></div>
+    </div>
+    <div>
+      <div class="canvas-wrap"><canvas id="statCanvas" width="1080" height="1920"></canvas></div>
+      <div style="font-size:11px;color:var(--dim);text-align:center;margin-top:6px;">9:16 · 1080×1920px</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ TAB 3: PREDICTION CARD ══ -->
+<div id="panel-prediction" class="panel">
+  <div class="sec-title">PREDICTION CARD</div>
+  <div class="sec-desc">Your WC2026 picks — export as shareable graphic</div>
+  <div class="form-row">
+    <div class="form-group"><label class="form-label">Champion 🏆</label><input type="text" id="pred-winner" value="Brazil 🇧🇷" oninput="renderPredCard()"></div>
+    <div class="form-group"><label class="form-label">Runner-up</label><input type="text" id="pred-runnerup" value="France 🇫🇷" oninput="renderPredCard()"></div>
+  </div>
+  <div class="form-row">
+    <div class="form-group"><label class="form-label">Dark horse 🐴</label><input type="text" id="pred-dark" value="Morocco 🇲🇦" oninput="renderPredCard()"></div>
+    <div class="form-group"><label class="form-label">Biggest upset 💣</label><input type="text" id="pred-upset" value="Germany exits group stage" oninput="renderPredCard()"></div>
+  </div>
+  <div class="form-group"><label class="form-label">Golden Boot ⚽</label><input type="text" id="pred-boot" value="Vinicius Jr." oninput="renderPredCard()"></div>
+  <div class="form-group"><label class="form-label">Hot take</label><input type="text" id="pred-take" value="Mbappe can't carry France alone" oninput="renderPredCard()"></div>
+  <div class="form-group"><label class="form-label">Watermark</label><input type="text" id="pred-wm" value="@WC2026Updates" oninput="renderPredCard()"></div>
+  <div style="margin-top:16px;background:var(--card);border:1px solid var(--border);border-radius:var(--rl);overflow:hidden;">
+    <canvas id="predCanvas" width="1080" height="1920" style="width:100%;max-width:320px;display:block;margin:0 auto;"></canvas>
+  </div>
+  <div class="btn-row" style="margin-top:12px;">
+    <button class="btn btn-primary btn-sm" onclick="exportPNG('predCanvas','wc2026-predictions.png')">📥 PNG</button>
+    <button class="btn btn-green btn-sm" onclick="exportVideo('predCanvas','wc2026-predictions')">🎬 Video</button>
+  </div>
+</div>
+
+<!-- ══ TAB 4: AI ORACLE ══ -->
+<div id="panel-oracle" class="panel">
+  <div class="sec-title">AI ORACLE</div>
+  <div class="sec-desc">Prediction accountability series — 104 matches = 208 videos</div>
+  <div class="info-box"><strong>The format:</strong> Before the match post AI prediction with % confidence. After the match post "AI was WRONG" or "AI nailed it." Failure content outperforms prediction content 3:1. The running scoreboard is content in itself.</div>
+  <div class="form-row">
+    <div>
+      <div style="font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);margin-bottom:12px;">BEFORE MATCH</div>
+      <div class="form-group"><label class="form-label">Match</label><input type="text" id="or-match" value="Brazil vs Germany"></div>
+      <div class="form-group">
+        <label class="form-label">Stage</label>
+        <select id="or-stage">
+          <option>Group stage</option><option>Round of 32</option><option>Round of 16</option>
+          <option>Quarterfinal</option><option>Semifinal</option><option>Final</option>
+        </select>
+      </div>
+      <div class="form-group"><label class="form-label">Your gut (optional)</label><input type="text" id="or-gut" placeholder="e.g. I think Germany upsets"></div>
+      <button class="btn btn-primary" style="width:100%" id="or-pre-btn" onclick="generateOraclePre()">Generate pre-match prediction</button>
+      <div id="or-pre-out" class="output-box" style="display:none">
+        <div class="output-label">🔮 ORACLE PREDICTION SCRIPT</div>
+        <button class="copy-btn" onclick="copyEl('or-pre-text')">Copy</button>
+        <div class="output-text" id="or-pre-text"></div>
+      </div>
+    </div>
+    <div>
+      <div style="font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--red);margin-bottom:12px;">AFTER MATCH</div>
+      <div class="form-group"><label class="form-label">Actual result</label><input type="text" id="or-result" placeholder="e.g. Germany 3-1 Brazil"></div>
+      <div class="form-group"><label class="form-label">AI predicted vs reality</label><input type="text" id="or-diff" placeholder="e.g. AI gave Brazil 74% — catastrophically wrong"></div>
+      <div class="form-group"><label class="form-label">Dramatic moment?</label><input type="text" id="or-moment" placeholder="e.g. 90th min equalizer, own goal"></div>
+      <button class="btn btn-red" style="width:100%" id="or-post-btn" onclick="generateOraclePost()">Generate accountability video</button>
+      <div id="or-post-out" class="output-box" style="display:none">
+        <div class="output-label" style="color:var(--red);">💀 ACCOUNTABILITY SCRIPT</div>
+        <button class="copy-btn" onclick="copyEl('or-post-text')">Copy</button>
+        <div class="output-text" id="or-post-text"></div>
+      </div>
+    </div>
+  </div>
+  <hr class="divider">
+  <div style="font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:12px;">ORACLE SCOREBOARD</div>
+  <div class="score-grid">
+    <div class="score-card" style="border:1px solid var(--border)"><div class="score-num" id="sc-total" style="color:var(--accent)">0</div><div class="score-label">Predictions</div></div>
+    <div class="score-card" style="border:1px solid var(--green)"><div class="score-num" id="sc-correct" style="color:var(--green)">0</div><div class="score-label">AI correct ✅</div></div>
+    <div class="score-card" style="border:1px solid var(--red)"><div class="score-num" id="sc-wrong" style="color:var(--red)">0</div><div class="score-label">AI WRONG 💀</div></div>
+  </div>
+  <div class="btn-row">
+    <button class="btn btn-secondary btn-sm" onclick="scoreRight()">✅ AI was right</button>
+    <button class="btn btn-red btn-sm" onclick="scoreWrong()">❌ AI was WRONG</button>
+    <button class="btn btn-secondary btn-sm" onclick="resetScore()">Reset</button>
+  </div>
+</div>
+
+<!-- ══ TAB 5: HUMAN STORY ══ -->
+<div id="panel-human" class="panel">
+  <div class="sec-title">HUMAN STORY</div>
+  <div class="sec-desc">Don't cover the match. Cover the people watching it. Stories beat scores.</div>
+  <div class="info-box"><strong>The insight:</strong> "Spain beat Germany 2-1" = 200 views. "Somewhere in England, 60 million people held their breath for 90 minutes and went to sleep heartbroken" = 2M views. Emotion = watch time.</div>
+  <div class="form-row">
+    <div class="form-group">
+      <label class="form-label">Story angle</label>
+      <select id="hs-angle">
+        <option value="woke_up_3am">Woke up at 3am to watch</option>
+        <option value="diaspora">Diaspora watching from abroad</option>
+        <option value="nepal_watching">Nepal watching (Nepali angle)</option>
+        <option value="fan_emotion">Fan emotion after result</option>
+        <option value="father_son">Father / son watching together</option>
+        <option value="country_never_qualified">Country that never qualified</option>
+        <option value="underdog_nation">Small nation's journey</option>
+        <option value="what_if_nepal">What if Nepal qualified?</option>
+        <option value="what_if_scenario">What if? (custom scenario)</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Match / team / moment</label>
+      <input type="text" id="hs-match" placeholder="e.g. Morocco reaching QF, or England vs France">
+    </div>
+  </div>
+  <div class="form-group"><label class="form-label">Extra context (optional)</label><input type="text" id="hs-context" placeholder="e.g. England haven't won since 1966"></div>
+  <div class="form-group">
+    <label class="form-label">Language</label>
+    <div class="chips">
+      <span class="chip active" data-group="lang" data-val="english">English</span>
+      <span class="chip" data-group="lang" data-val="nepali_english">Nepali-English mix</span>
+      <span class="chip" data-group="lang" data-val="nepali">Nepali (नेपाली)</span>
+    </div>
+  </div>
+  <div class="form-group">
+    <label class="form-label">Video format</label>
+    <div class="chips">
+      <span class="chip active" data-group="hsfmt" data-val="voiceover">🎤 Voiceover</span>
+      <span class="chip" data-group="hsfmt" data-val="text_screen">📱 Text on screen</span>
+      <span class="chip" data-group="hsfmt" data-val="face_cam">🎙 Face-cam</span>
+    </div>
+  </div>
+  <button class="btn btn-primary" style="width:100%" id="hs-btn" onclick="generateHumanStory()">Generate human story script</button>
+  <div id="hs-output" style="display:none">
+    <div class="output-box"><div class="output-label">❤️ OPENING (first 3 seconds)</div><button class="copy-btn" onclick="copyEl('hs-open')">Copy</button><div class="output-text" id="hs-open"></div></div>
+    <div class="output-box"><div class="output-label">📖 FULL STORY</div><button class="copy-btn" onclick="copyEl('hs-story')">Copy</button><div class="output-text" id="hs-story"></div></div>
+    <div class="output-box"><div class="output-label">💬 CAPTION + CTA</div><button class="copy-btn" onclick="copyEl('hs-caption')">Copy</button><div class="output-text" id="hs-caption"></div></div>
+    <div class="hashtag-box" id="hs-tags"></div>
+  </div>
+  <hr class="divider">
+  <div style="font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:10px;">STORY SPARKS — click to load</div>
+  <div class="spark-grid" id="storySparks"></div>
+</div>
+
+<!-- ══ TAB 6: CONTENT CALENDAR ══ -->
+<div id="panel-calendar" class="panel">
+  <div class="sec-title">CONTENT CALENDAR</div>
+  <div class="sec-desc">39-day match-synced plan · Jun 9 – Jul 19 · click any day to load into Script Generator</div>
+  <div class="chips" style="margin-bottom:14px;">
+    <span class="chip active" data-group="cal" data-filter="all">All</span>
+    <span class="chip" data-group="cal" data-filter="match">⚽ Match days</span>
+    <span class="chip" data-group="cal" data-filter="graphic">📊 Graphics</span>
+    <span class="chip" data-group="cal" data-filter="script">📝 Scripts</span>
+  </div>
+  <div class="cal-grid" id="calGrid"></div>
+</div>
+
+<!-- ══ TAB 7: HASHTAGS ══ -->
+<div id="panel-hashtags" class="panel">
+  <div class="sec-title">HASHTAG ENGINE</div>
+  <div class="sec-desc">Curated, copyright-safe sets for every situation</div>
+  <div class="form-group">
+    <label class="form-label">Situation</label>
+    <select id="ht-situation" onchange="renderHashtags()">
+      <option value="general">General WC content</option>
+      <option value="match_day">Match day hype</option>
+      <option value="upset">Major upset</option>
+      <option value="prediction">My predictions</option>
+      <option value="oracle">AI Oracle series</option>
+      <option value="human_story">Human story content</option>
+      <option value="nepal">Nepal / Nepali diaspora</option>
+      <option value="usa">USA / USMNT</option>
+      <option value="brazil">Brazil</option>
+      <option value="argentina">Argentina</option>
+      <option value="england">England</option>
+      <option value="host_city">Host city / Dallas</option>
+    </select>
+  </div>
+  <div class="form-group"><label class="form-label">Add team / match tag</label><input type="text" id="ht-team" placeholder="e.g. Mexico, Group A" oninput="renderHashtags()"></div>
+  <div class="hashtag-box" id="ht-box"></div>
+  <div style="margin-top:8px;display:flex;gap:10px;align-items:center;">
+    <span id="ht-count" style="font-size:12px;color:var(--muted);"></span>
+    <button class="btn btn-secondary btn-sm" onclick="copyHashtags()">Copy all</button>
+  </div>
+  <hr class="divider">
+  <div class="output-label" style="margin-bottom:8px;">STRATEGY NOTES</div>
+  <div id="ht-notes" style="font-size:13px;line-height:1.7;color:var(--muted);"></div>
+</div>
+
+</div><!-- /main -->
+<div id="toast"></div>
+
+<script>
+// ═══════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════
+const API = "https://api.anthropic.com/v1/messages";
+const MODEL = "claude-sonnet-4-20250514";
+let cardAccent = "#c9a84c";
+let chipState = { tone:"hype", lang:"english", hsfmt:"voiceover" };
+let oracleScore = {total:0,correct:0,wrong:0};
+let calFilter = "all";
+
+// ═══════════════════════════════════════════════
+// INIT — runs after page fully loaded
+// ═══════════════════════════════════════════════
+window.onload = function() {
+  // Chip click handler (single delegated listener on body)
+  document.body.addEventListener('click', function(e) {
+    const chip = e.target.closest('.chip');
+    if (!chip) return;
+    const group = chip.dataset.group;
+    if (!group) return;
+
+    if (group === 'tone' || group === 'lang' || group === 'hsfmt') {
+      document.querySelectorAll('.chip[data-group="'+group+'"]').forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+      if (group === 'tone') chipState.tone = chip.dataset.val;
+      if (group === 'lang') chipState.lang = chip.dataset.val;
+      if (group === 'hsfmt') chipState.hsfmt = chip.dataset.val;
+    }
+    if (group === 'accent') {
+      document.querySelectorAll('.chip[data-group="accent"]').forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+      cardAccent = chip.dataset.color;
+      renderCard();
+    }
+    if (group === 'cal') {
+      document.querySelectorAll('.chip[data-group="cal"]').forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+      calFilter = chip.dataset.filter;
+      buildCalendar();
+    }
+  });
+
+  // Countdown clock
+  setInterval(updateClock, 1000);
+  updateClock();
+
+  // Default countdown date
+  const dtEl = document.getElementById('sc-cd-date');
+  if (dtEl) dtEl.value = '2026-06-11T15:00';
+
+  // Init renders
+  renderCard();
+  renderPredCard();
+  renderHashtags();
+  buildStorySparks();
+
+  // Try restore oracle score
+  try {
+    const s = localStorage.getItem('oracleScore');
+    if (s) oracleScore = JSON.parse(s);
+  } catch(e) {}
+  updateOracleDisplay();
+};
+
+// ═══════════════════════════════════════════════
+// TAB SWITCHING
+// ═══════════════════════════════════════════════
+function switchTab(id, btn) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('panel-' + id).classList.add('active');
+  if (btn) btn.classList.add('active');
+  if (id === 'statcard') renderCard();
+  if (id === 'prediction') renderPredCard();
+  if (id === 'calendar') buildCalendar();
+  if (id === 'hashtags') renderHashtags();
+}
+
+// ═══════════════════════════════════════════════
+// UTILS
+// ═══════════════════════════════════════════════
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+function copyEl(id) {
+  const text = document.getElementById(id).textContent;
+  navigator.clipboard.writeText(text).then(() => showToast('Copied!'));
+}
+
+function copyHashtags() {
+  navigator.clipboard.writeText(document.getElementById('ht-box').textContent).then(() => showToast('Hashtags copied!'));
+}
+
+function setLoading(btnId, loading, defaultLabel) {
+  const btn = document.getElementById(btnId);
+  if (!btn) return;
+  btn.disabled = loading;
+  btn.innerHTML = loading ? '<span class="spinner"></span> Generating...' : defaultLabel;
+}
+
+async function callClaude(prompt, maxTokens) {
+  const res = await fetch(API, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ model: MODEL, max_tokens: maxTokens, messages: [{ role: 'user', content: prompt }] })
+  });
+  const data = await res.json();
+  const raw = data.content?.[0]?.text || '';
+  return JSON.parse(raw.replace(/```json|```/g, '').trim());
+}
+
+function updateClock() {
+  const kickoff = new Date('2026-06-11T15:00:00-05:00');
+  const diff = kickoff - new Date();
+  const el = document.getElementById('headerTimer');
+  if (!el) return;
+  if (diff <= 0) { el.textContent = '⚽ LIVE'; return; }
+  const d = Math.floor(diff/86400000);
+  const h = Math.floor((diff%86400000)/3600000);
+  const m = Math.floor((diff%3600000)/60000);
+  const s = Math.floor((diff%60000)/1000);
+  el.textContent = d+'d '+String(h).padStart(2,'0')+'h '+String(m).padStart(2,'0')+'m '+String(s).padStart(2,'0')+'s';
+}
+
+// ═══════════════════════════════════════════════
+// SCRIPT GENERATOR
+// ═══════════════════════════════════════════════
+async function generateScript() {
+  const format = document.getElementById('sg-format').value;
+  const style = document.getElementById('sg-style').value;
+  const topic = document.getElementById('sg-topic').value.trim();
+  const angle = document.getElementById('sg-angle').value.trim();
+  if (!topic) { showToast('Enter a topic first'); return; }
+
+  setLoading('sg-btn', true, 'Generate script');
+  const fmtMap = {
+    hot_take:'hot take / reaction',
+    stat_reveal:'stat reveal with a mind-blowing number',
+    prediction:'bold AI prediction with confidence percentage',
+    prediction_fail:'PREDICTION FAIL accountability video — AI was completely wrong, be self-deprecating and funny',
+    dark_horse:'dark horse team spotlight',
+    history:'World Cup history moment nobody talks about',
+    unknown_fact:'shocking fact most people do not know — make it mind-blowing',
+    fan_psychology:'fan psychology video — what fans FEEL, not the scoreline',
+    what_if:'hypothetical "What if?" AI scenario — creative and imaginative',
+    debate:'debate bait — take a controversial stance, invite argument',
+    daily_wrap:'daily match wrap',
+    human_story:'human story — NOT about the match, about the PEOPLE watching. Someone woke up at 3am for this. Tell THEIR story.',
+    nepali_angle:'Nepal or Nepali diaspora angle — how Nepali people experience this World Cup moment',
+    countdown:'match countdown hype'
+  };
+  const styleMap = {
+    face_cam:'face-cam commentary (person speaking to camera)',
+    voiceover:'voiceover narration for faceless video',
+    text_only:'text-on-screen only, no voiceover'
+  };
+
+  const prompt = `You are a viral TikTok sports content strategist for a World Cup 2026 page.
+
+FORMAT: ${fmtMap[format]}
+STYLE: ${styleMap[style]}
+TOPIC: ${topic}
+${angle ? 'ANGLE: '+angle : ''}
+TONE: ${chipState.tone}
+CONTEXT: FIFA World Cup 2026, June 11 – July 19, hosted in USA/Canada/Mexico, 48 teams, 104 matches.
+
+Respond ONLY in this exact JSON (no markdown, no extra text):
+{"hook":"Opening 1-2 sentences max 15 words. Must stop scroll in 1.5 seconds. Bold statement or shocking reveal.","body":"Full script body 5-15 sentences. For face-cam add [PAUSE] and [EMPHASIS]. For text-only separate lines with |||","caption":"TikTok caption 2-3 sentences. End with debate-starter question.","hashtags":"10-12 hashtags. Mix #WorldCup2026 #WC2026 #soccer #football with specific tags. No spaces around #."}`;
+
+  try {
+    const p = await callClaude(prompt, 1000);
+    document.getElementById('sg-hook').textContent = p.hook;
+    document.getElementById('sg-body').textContent = p.body;
+    document.getElementById('sg-caption').textContent = p.caption;
+    document.getElementById('sg-tags').textContent = p.hashtags;
+    document.getElementById('sg-output').style.display = 'block';
+  } catch(e) { showToast('API error — check connection'); console.error(e); }
+  setLoading('sg-btn', false, 'Generate script');
+}
+
+// ═══════════════════════════════════════════════
+// CANVAS HELPERS
+// ═══════════════════════════════════════════════
+const CW = 1080, CH = 1920;
+
+function drawBase(ctx) {
+  ctx.fillStyle = '#0a0a0a';
+  ctx.fillRect(0, 0, CW, CH);
+  ctx.strokeStyle = 'rgba(255,255,255,0.025)';
+  ctx.lineWidth = 1;
+  for (let y = 0; y < CH; y += 80) { ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(CW,y); ctx.stroke(); }
+  ctx.fillStyle = cardAccent;
+  ctx.fillRect(0, 0, CW, 12);
+  ctx.fillRect(0, CH-12, CW, 12);
+}
+
+function drawWatermark(ctx, text) {
+  ctx.font = '400 36px Inter,sans-serif';
+  ctx.fillStyle = 'rgba(255,255,255,0.25)';
+  ctx.textAlign = 'left';
+  ctx.fillText(text || '', 60, CH-54);
+}
+
+function wrapText(ctx, text, x, y, maxW, lineH) {
+  const words = text.split(' ');
+  let line = '', cy = y;
+  for (let i = 0; i < words.length; i++) {
+    const test = line + words[i] + ' ';
+    if (ctx.measureText(test).width > maxW && i > 0) {
+      ctx.fillText(line.trim(), x, cy);
+      line = words[i] + ' ';
+      cy += lineH;
+    } else { line = test; }
+  }
+  ctx.fillText(line.trim(), x, cy);
+}
+
+function roundRect(ctx, x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x+r,y); ctx.lineTo(x+w-r,y); ctx.quadraticCurveTo(x+w,y,x+w,y+r);
+  ctx.lineTo(x+w,y+h-r); ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
+  ctx.lineTo(x+r,y+h); ctx.quadraticCurveTo(x,y+h,x,y+h-r);
+  ctx.lineTo(x,y+r); ctx.quadraticCurveTo(x,y,x+r,y); ctx.closePath();
+}
+
+// ═══════════════════════════════════════════════
+// STAT CARD RENDERER
+// ═══════════════════════════════════════════════
+function onCardTypeChange() {
+  const t = document.getElementById('sc-type').value;
+  ['big_stat','vs_card','countdown','fact_drop'].forEach(k => {
+    const el = document.getElementById('sc-fields-'+k);
+    if (el) el.style.display = (k === t) ? 'block' : 'none';
+  });
+  renderCard();
+}
+
+function renderCard() {
+  const canvas = document.getElementById('statCanvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  drawBase(ctx);
+  drawWatermark(ctx, document.getElementById('sc-watermark').value);
+  const type = document.getElementById('sc-type').value;
+  if (type === 'big_stat') drawBigStat(ctx);
+  else if (type === 'vs_card') drawVsCard(ctx);
+  else if (type === 'countdown') drawCountdown(ctx);
+  else if (type === 'fact_drop') drawFact(ctx);
+}
+
+function drawBigStat(ctx) {
+  const num = document.getElementById('sc-stat-num').value || '—';
+  const label = document.getElementById('sc-stat-label').value || 'Stat label';
+  const source = document.getElementById('sc-stat-source').value || '';
+  ctx.font = '700 32px Inter,sans-serif'; ctx.fillStyle = cardAccent; ctx.textAlign = 'center';
+  ctx.fillText('FIFA WORLD CUP 2026', CW/2, 120);
+  ctx.font = `700 ${num.length>4?260:360}px Bebas Neue,sans-serif`;
+  ctx.fillStyle = cardAccent; ctx.fillText(num, CW/2, CH/2-40);
+  ctx.strokeStyle = cardAccent; ctx.lineWidth = 4;
+  ctx.beginPath(); ctx.moveTo(CW/2-200, CH/2+20); ctx.lineTo(CW/2+200, CH/2+20); ctx.stroke();
+  ctx.font = '600 52px Inter,sans-serif'; ctx.fillStyle = '#fff';
+  wrapText(ctx, label.toUpperCase(), CW/2, CH/2+110, CW-160, 64);
+  if (source) { ctx.font='400 38px Inter,sans-serif'; ctx.fillStyle='rgba(255,255,255,.45)'; ctx.fillText(source, CW/2, CH/2+260); }
+}
+
+function drawVsCard(ctx) {
+  const t1 = (document.getElementById('sc-team1').value||'TEAM A').toUpperCase();
+  const t2 = (document.getElementById('sc-team2').value||'TEAM B').toUpperCase();
+  const f1 = document.getElementById('sc-flag1').value||'🏴';
+  const f2 = document.getElementById('sc-flag2').value||'🏴';
+  const dt = document.getElementById('sc-matchdate').value||'TBD';
+  const venue = document.getElementById('sc-venue').value||'';
+  ctx.font='700 32px Inter,sans-serif'; ctx.fillStyle=cardAccent; ctx.textAlign='center';
+  ctx.fillText('FIFA WORLD CUP 2026', CW/2, 120);
+  ctx.font='72px Inter,sans-serif'; ctx.fillStyle='#fff';
+  ctx.fillText(f1, CW/4, CH/2-180); ctx.fillText(f2, 3*CW/4, CH/2-180);
+  ctx.font=`700 ${t1.length>8?90:110}px Bebas Neue,sans-serif`;
+  ctx.fillText(t1, CW/4, CH/2-60); ctx.fillText(t2, 3*CW/4, CH/2-60);
+  ctx.font='700 160px Bebas Neue,sans-serif'; ctx.fillStyle=cardAccent; ctx.fillText('VS', CW/2, CH/2+20);
+  ctx.strokeStyle='rgba(255,255,255,.1)'; ctx.lineWidth=2;
+  ctx.beginPath(); ctx.moveTo(80,CH/2+80); ctx.lineTo(CW-80,CH/2+80); ctx.stroke();
+  ctx.font='600 52px Inter,sans-serif'; ctx.fillStyle=cardAccent; ctx.fillText(dt, CW/2, CH/2+160);
+  if (venue) { ctx.font='400 40px Inter,sans-serif'; ctx.fillStyle='rgba(255,255,255,.5)'; ctx.fillText(venue, CW/2, CH/2+230); }
+}
+
+function drawCountdown(ctx) {
+  const event = document.getElementById('sc-cd-event').value||'World Cup Kickoff';
+  const dtInput = document.getElementById('sc-cd-date').value;
+  const target = dtInput ? new Date(dtInput) : new Date('2026-06-11T15:00:00-05:00');
+  const diff = target - new Date();
+  ctx.font='700 32px Inter,sans-serif'; ctx.fillStyle=cardAccent; ctx.textAlign='center';
+  ctx.fillText('FIFA WORLD CUP 2026', CW/2, 120);
+  ctx.font='600 52px Inter,sans-serif'; ctx.fillStyle='rgba(255,255,255,.6)';
+  ctx.fillText(event.toUpperCase(), CW/2, CH/2-320);
+  if (diff<=0) {
+    ctx.font='700 180px Bebas Neue,sans-serif'; ctx.fillStyle=cardAccent; ctx.fillText("IT'S TIME!", CW/2, CH/2);
+  } else {
+    const d=Math.floor(diff/86400000), h=Math.floor((diff%86400000)/3600000),
+          m=Math.floor((diff%3600000)/60000), s=Math.floor((diff%60000)/1000);
+    const units=[{v:d,l:'DAYS'},{v:h,l:'HRS'},{v:m,l:'MIN'},{v:s,l:'SEC'}];
+    const sx = CW/2-440;
+    units.forEach((u,i) => {
+      const x=sx+i*240, y=CH/2;
+      ctx.fillStyle='rgba(255,255,255,.06)'; roundRect(ctx,x-90,y-160,200,200,16); ctx.fill();
+      ctx.strokeStyle=cardAccent; ctx.lineWidth=2; roundRect(ctx,x-90,y-160,200,200,16); ctx.stroke();
+      ctx.font='700 140px Bebas Neue,sans-serif'; ctx.fillStyle=cardAccent;
+      ctx.fillText(String(u.v).padStart(2,'0'), x+10, y+10);
+      ctx.font='600 36px Inter,sans-serif'; ctx.fillStyle='rgba(255,255,255,.5)';
+      ctx.fillText(u.l, x+10, y+76);
+    });
+  }
+}
+
+function drawFact(ctx) {
+  const head=(document.getElementById('sc-fact-head').value||'DID YOU KNOW?').toUpperCase();
+  const body=document.getElementById('sc-fact-body').value||'';
+  ctx.font='700 32px Inter,sans-serif'; ctx.fillStyle=cardAccent; ctx.textAlign='center';
+  ctx.fillText('FIFA WORLD CUP 2026', CW/2, 120);
+  ctx.font='700 90px Bebas Neue,sans-serif'; ctx.fillStyle=cardAccent; ctx.fillText(head, CW/2, CH/2-260);
+  ctx.font='700 380px Bebas Neue,sans-serif'; ctx.fillStyle='rgba(201,168,76,.07)'; ctx.fillText('?', CW/2, CH/2+140);
+  ctx.font='600 56px Inter,sans-serif'; ctx.fillStyle='#fff';
+  wrapText(ctx, body, CW/2, CH/2-100, CW-140, 70);
+}
+
+// ═══════════════════════════════════════════════
+// PREDICTION CARD
+// ═══════════════════════════════════════════════
+function renderPredCard() {
+  const canvas = document.getElementById('predCanvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  drawBase(ctx);
+  ctx.font='700 100px Bebas Neue,sans-serif'; ctx.fillStyle='#c9a84c'; ctx.textAlign='center';
+  ctx.fillText('MY WC 2026', CW/2, 180);
+  ctx.font='700 80px Bebas Neue,sans-serif'; ctx.fillStyle='rgba(255,255,255,.7)';
+  ctx.fillText('PREDICTIONS', CW/2, 270);
+  ctx.strokeStyle='rgba(201,168,76,.3)'; ctx.lineWidth=2;
+  ctx.beginPath(); ctx.moveTo(80,310); ctx.lineTo(CW-80,310); ctx.stroke();
+  const rows=[
+    {icon:'🏆',label:'CHAMPION',val:document.getElementById('pred-winner').value},
+    {icon:'🥈',label:'RUNNER-UP',val:document.getElementById('pred-runnerup').value},
+    {icon:'🐴',label:'DARK HORSE',val:document.getElementById('pred-dark').value},
+    {icon:'💣',label:'BIGGEST UPSET',val:document.getElementById('pred-upset').value},
+    {icon:'⚽',label:'GOLDEN BOOT',val:document.getElementById('pred-boot').value},
+  ];
+  rows.forEach((r,i) => {
+    const y=380+i*240;
+    ctx.fillStyle=i===0?'rgba(201,168,76,.1)':'rgba(255,255,255,.04)';
+    roundRect(ctx,60,y,CW-120,200,16); ctx.fill();
+    ctx.strokeStyle=i===0?'rgba(201,168,76,.3)':'rgba(255,255,255,.07)'; ctx.lineWidth=1;
+    roundRect(ctx,60,y,CW-120,200,16); ctx.stroke();
+    ctx.font='52px Inter,sans-serif'; ctx.fillStyle='#fff'; ctx.textAlign='left'; ctx.fillText(r.icon,100,y+78);
+    ctx.font='600 32px Inter,sans-serif'; ctx.fillStyle='rgba(255,255,255,.45)'; ctx.fillText(r.label,170,y+55);
+    ctx.font=`600 ${r.val.length>18?42:52}px Inter,sans-serif`;
+    ctx.fillStyle=i===0?'#c9a84c':'#fff';
+    wrapText(ctx,r.val,170,y+108,CW-280,58);
+  });
+  const take=document.getElementById('pred-take').value;
+  if (take) {
+    const ty=380+rows.length*240+40;
+    ctx.fillStyle='rgba(217,48,37,.12)'; roundRect(ctx,60,ty,CW-120,160,16); ctx.fill();
+    ctx.strokeStyle='rgba(217,48,37,.3)'; ctx.lineWidth=1; roundRect(ctx,60,ty,CW-120,160,16); ctx.stroke();
+    ctx.font='600 32px Inter,sans-serif'; ctx.fillStyle='#d93025'; ctx.textAlign='left'; ctx.fillText('🔥 HOT TAKE',100,ty+52);
+    ctx.font='500 38px Inter,sans-serif'; ctx.fillStyle='#fff';
+    wrapText(ctx,take,100,ty+105,CW-200,46);
+  }
+  drawWatermark(ctx, document.getElementById('pred-wm').value);
+}
+
+// ═══════════════════════════════════════════════
+// EXPORT
+// ═══════════════════════════════════════════════
+function exportPNG(canvasId, filename) {
+  const canvas = document.getElementById(canvasId);
+  if (!canvas) return;
+  if (canvasId === 'statCanvas') renderCard();
+  if (canvasId === 'predCanvas') renderPredCard();
+  const a = document.createElement('a');
+  a.download = filename; a.href = canvas.toDataURL('image/png'); a.click();
+  showToast('PNG saved!');
+}
+
+function exportVideo(canvasId, filename) {
+  const canvas = document.getElementById(canvasId);
+  if (!canvas) { showToast('Canvas not found'); return; }
+  const statusEl = document.getElementById('sc-status');
+  if (statusEl) statusEl.textContent = 'Recording 3s…';
+  const stream = canvas.captureStream(30);
+  const mimeType = MediaRecorder.isTypeSupported('video/mp4') ? 'video/mp4' : 'video/webm';
+  const ext = mimeType.includes('mp4') ? 'mp4' : 'webm';
+  const recorder = new MediaRecorder(stream, { mimeType, videoBitsPerSecond: 6_000_000 });
+  const chunks = [];
+  recorder.ondataavailable = e => { if (e.data.size > 0) chunks.push(e.data); };
+  recorder.onstop = () => {
+    const blob = new Blob(chunks, { type: mimeType });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href = url; a.download = filename+'.'+ext; a.click();
+    URL.revokeObjectURL(url);
+    if (statusEl) statusEl.textContent = 'Saved as .'+ext;
+    showToast('Video saved!');
+  };
+  recorder.start();
+  let f = 0;
+  const tick = setInterval(() => {
+    f++;
+    if (canvasId === 'statCanvas' && document.getElementById('sc-type').value === 'countdown') renderCard();
+    if (f >= 90) { clearInterval(tick); recorder.stop(); }
+  }, 1000/30);
+}
+
+// ═══════════════════════════════════════════════
+// AI ORACLE
+// ═══════════════════════════════════════════════
+function updateOracleDisplay() {
+  document.getElementById('sc-total').textContent = oracleScore.total;
+  document.getElementById('sc-correct').textContent = oracleScore.correct;
+  document.getElementById('sc-wrong').textContent = oracleScore.wrong;
+}
+
+function saveOracle() {
+  try { localStorage.setItem('oracleScore', JSON.stringify(oracleScore)); } catch(e) {}
+  updateOracleDisplay();
+}
+
+function scoreRight() { oracleScore.total++; oracleScore.correct++; saveOracle(); showToast('✅ Logged — AI was right!'); }
+function scoreWrong() { oracleScore.total++; oracleScore.wrong++; saveOracle(); showToast('💀 Logged — AI WRONG!'); }
+function resetScore() { oracleScore = {total:0,correct:0,wrong:0}; saveOracle(); showToast('Score reset'); }
+
+async function generateOraclePre() {
+  const match = document.getElementById('or-match').value.trim();
+  if (!match) { showToast('Enter match first'); return; }
+  const stage = document.getElementById('or-stage').value;
+  const gut = document.getElementById('or-gut').value.trim();
+  setLoading('or-pre-btn', true, 'Generate pre-match prediction');
+  const prompt = `You are an AI sports oracle making a bold WC 2026 prediction for TikTok.
+MATCH: ${match}
+STAGE: ${stage}
+${gut ? 'CREATOR HINT: '+gut : ''}
+Rules: give specific win % for each team (sum to 100), be definitive, confident over-the-top oracle tone, include 1 specific reason, under 30 seconds spoken, end with "Drop your prediction below 👇 Let's see who's right."
+Respond ONLY in JSON: {"script":"full spoken script under 30s","caption":"1-2 sentence TikTok caption with percentages","hashtags":"hashtags including #WorldCup2026 #WC2026 #AIprediction #OraclePredicts"}`;
+  try {
+    const p = await callClaude(prompt, 600);
+    document.getElementById('or-pre-text').textContent = p.script + '\n\nCAPTION: ' + p.caption + '\n\n' + p.hashtags;
+    document.getElementById('or-pre-out').style.display = 'block';
+  } catch(e) { showToast('Error'); console.error(e); }
+  setLoading('or-pre-btn', false, 'Generate pre-match prediction');
+}
+
+async function generateOraclePost() {
+  const result = document.getElementById('or-result').value.trim();
+  if (!result) { showToast('Enter the actual result first'); return; }
+  const match = document.getElementById('or-match').value.trim();
+  const diff = document.getElementById('or-diff').value.trim();
+  const moment = document.getElementById('or-moment').value.trim();
+  setLoading('or-post-btn', true, 'Generate accountability video');
+  const prompt = `Generate a "Prediction Accountability" TikTok script where AI got it wrong (people love this).
+MATCH: ${match}
+ACTUAL RESULT: ${result}
+${diff ? 'AI PREDICTED: '+diff : ''}
+${moment ? 'DRAMATIC MOMENT: '+moment : ''}
+Rules: be self-deprecating, funny, shocked — people love seeing confident predictions fail. Reference specific percentage vs reality. Under 30 seconds. End with "Were YOU right? Drop your score below 👇"
+Respond ONLY in JSON: {"script":"full accountability script under 30s, punchy and funny","caption":"caption highlighting the fail","hashtags":"hashtags including #AIwasWrong #WorldCup2026 #WC2026"}`;
+  try {
+    const p = await callClaude(prompt, 600);
+    document.getElementById('or-post-text').textContent = p.script + '\n\nCAPTION: ' + p.caption + '\n\n' + p.hashtags;
+    document.getElementById('or-post-out').style.display = 'block';
+  } catch(e) { showToast('Error'); console.error(e); }
+  setLoading('or-post-btn', false, 'Generate accountability video');
+}
+
+// ═══════════════════════════════════════════════
+// HUMAN STORY
+// ═══════════════════════════════════════════════
+const SPARKS = [
+  {icon:'🇳🇵',title:'Nepal at 3am',prompt:'Nepal fans waking up at 3am to watch the World Cup'},
+  {icon:'👴',title:'Father & son',prompt:'Father and son watching the World Cup together for the first time'},
+  {icon:'🌍',title:'Morocco diaspora',prompt:'Morocco diaspora in Europe watching their team reach the QF'},
+  {icon:'💔',title:'England heartbreak',prompt:'England fans — the eternal hope and heartbreak cycle every World Cup'},
+  {icon:'✨',title:'What if Nepal?',prompt:'What if Nepal qualified for the World Cup 2026?'},
+  {icon:'🏙️',title:'Dallas fan zone',prompt:'Fans from 50 countries gathering at the Dallas fan zone'},
+  {icon:'🌙',title:'Muslim players fasting',prompt:'Muslim players fasting during Ramadan while competing at the highest level'},
+  {icon:'🏳️',title:'Never qualified',prompt:'A country that has never qualified watching from home dreaming of one day being there'},
+  {icon:'🤖',title:'Messi + Ronaldo',prompt:'What if Messi and Ronaldo played on the same team?'},
+  {icon:'🇧🇷',title:'Brazil stops',prompt:'When Brazil plays, the entire country of 220 million people stops'},
+  {icon:'📻',title:'One shared screen',prompt:'A village with one shared screen watching the World Cup together'},
+  {icon:'👶',title:'Born for another flag',prompt:'Players who were born in one country but play for another — what does home really mean?'},
+];
+
+function buildStorySparks() {
+  const container = document.getElementById('storySparks');
+  if (!container) return;
+  SPARKS.forEach(s => {
+    const el = document.createElement('div');
+    el.className = 'spark-card';
+    el.innerHTML = '<div style="font-size:18px;margin-bottom:4px">'+s.icon+'</div><div style="font-size:12px;font-weight:600;color:var(--text);margin-bottom:2px">'+s.title+'</div><div style="font-size:11px;color:var(--muted);line-height:1.4">'+s.prompt+'</div>';
+    el.onclick = function() {
+      document.getElementById('hs-match').value = s.prompt;
+      showToast('Story loaded — hit Generate!');
+    };
+    container.appendChild(el);
+  });
+}
+
+async function generateHumanStory() {
+  const angle = document.getElementById('hs-angle').value;
+  const match = document.getElementById('hs-match').value.trim();
+  const context = document.getElementById('hs-context').value.trim();
+  if (!match) { showToast('Enter a match or topic first'); return; }
+  setLoading('hs-btn', true, 'Generate human story script');
+
+  const angleDesc = {
+    woke_up_3am:'someone who woke up at 3am just to watch this match — the sacrifice, love, community',
+    diaspora:'diaspora fans watching their home country from thousands of miles away — distance, belonging, pride or heartbreak',
+    nepal_watching:'Nepali fans and the Nepali diaspora — their passion despite Nepal never qualifying, waking up at odd hours, community around one screen',
+    fan_emotion:'emotional experience of fans after the result — not the score, the FEELING',
+    father_son:'a father and son watching together — passing down love of the game across generations',
+    country_never_qualified:'fans of a country that has never qualified — watching from home, dreaming of one day being there',
+    underdog_nation:'incredible journey of a smaller underdog nation nobody expected to go this far',
+    what_if_nepal:'imagine if Nepal qualified for WC2026 — what it would mean for 30 million people who love football but have never seen their team on the biggest stage',
+    what_if_scenario:'creative "What if?" scenario that reimagines football history or future in a fascinating way',
+  };
+
+  const langInstr = {
+    english:'Write entirely in English.',
+    nepali_english:'Write primarily in English but naturally weave in Nepali words where authentic (dai, bhai, ekdum, desh). Do not over-translate. Let it feel like how a Nepali diaspora person actually speaks.',
+    nepali:'Write entirely in Nepali (Devanagari script). Make it poetic and emotional.'
+  };
+
+  const fmtInstr = {
+    voiceover:'Format for voiceover narration — flowing prose, emotional, cinematic. Think documentary narrator.',
+    text_screen:'Format for text-on-screen — short punchy lines under 10 words each, separated by |||',
+    face_cam:'Format for face-cam — conversational, natural pauses marked as [PAUSE]'
+  };
+
+  const prompt = `You are a viral storytelling TikTok creator. Secret weapon: you cover PEOPLE watching matches, not the matches. This creates emotional content that transcends football.
+
+ANGLE: ${angleDesc[angle] || angle}
+TOPIC: ${match}
+${context ? 'CONTEXT: '+context : ''}
+LANGUAGE: ${langInstr[chipState.lang]}
+FORMAT: ${fmtInstr[chipState.hsfmt]}
+
+Opening rule: Start with a SCENE not a statement. "Somewhere in Kathmandu..." or "It's 2:47am in London..." Drop viewer INTO the story immediately.
+
+Respond ONLY in JSON: {"opening":"Scene-setter opening max 2 sentences. Vivid specific scene. This is the hook.","story":"Full script 20-45 seconds. Emotional and specific. Do NOT lead with the scoreline. End with a universal truth about football, love, belonging, or sacrifice.","caption":"1-2 sentence TikTok caption. End with a question about their own experience.","hashtags":"10 hashtags mixing football tags with story/emotion tags"}`;
+
+  try {
+    const p = await callClaude(prompt, 900);
+    document.getElementById('hs-open').textContent = p.opening;
+    document.getElementById('hs-story').textContent = p.story;
+    document.getElementById('hs-caption').textContent = p.caption;
+    document.getElementById('hs-tags').textContent = p.hashtags;
+    document.getElementById('hs-output').style.display = 'block';
+  } catch(e) { showToast('Error'); console.error(e); }
+  setLoading('hs-btn', false, 'Generate human story script');
+}
+
+// ═══════════════════════════════════════════════
+// CONTENT CALENDAR
+// ═══════════════════════════════════════════════
+const CAL = [
+  {date:'Jun 9',match:null,idea:'My 5 bold WC 2026 predictions',fmt:'script',type:'script'},
+  {date:'Jun 10',match:null,idea:'Dark horse team nobody is watching',fmt:'stat card',type:'graphic'},
+  {date:'Jun 11',match:'Mexico vs S.Africa — TOURNAMENT OPENS',idea:'React to opening match + first impressions',fmt:'face-cam',type:'match'},
+  {date:'Jun 12',match:'USA vs Paraguay',idea:'USMNT game day hype + prediction',fmt:'face-cam',type:'match'},
+  {date:'Jun 13',match:'Brazil + England open',idea:'Who has the stronger squad? Stat breakdown',fmt:'stat card',type:'match'},
+  {date:'Jun 14',match:'France + Argentina open',idea:'React fast — Mbappe vs Messi group stage',fmt:'face-cam',type:'match'},
+  {date:'Jun 15',match:null,idea:'Day 5 recap — biggest surprise so far',fmt:'voiceover',type:'script'},
+  {date:'Jun 16',match:'Group stage',idea:'Team power ranking update after 5 days',fmt:'graphic',type:'graphic'},
+  {date:'Jun 17',match:'Group stage',idea:'Best goal so far — reaction + breakdown',fmt:'face-cam',type:'match'},
+  {date:'Jun 18',match:'Group stage',idea:'Prediction update — who looks better / worse',fmt:'script',type:'script'},
+  {date:'Jun 19',match:'Group stage',idea:'The team nobody is talking about…',fmt:'voiceover',type:'script'},
+  {date:'Jun 20',match:'Group stage',idea:'Mind-blowing WC stats after 10 days',fmt:'stat card',type:'graphic'},
+  {date:'Jun 21',match:'Group stage',idea:'Human story: fans waking up at 3am in Nepal',fmt:'voiceover',type:'script'},
+  {date:'Jun 22',match:'Group stage',idea:'Controversial hot take about a big team',fmt:'face-cam',type:'script'},
+  {date:'Jun 23',match:'Group stage',idea:'Who gets eliminated first — bracket update',fmt:'graphic',type:'graphic'},
+  {date:'Jun 24',match:'Group stage',idea:'Best XI of the tournament so far',fmt:'stat card',type:'graphic'},
+  {date:'Jun 25',match:'Group stage — key clashes',idea:'Match preview: most important game this week',fmt:'face-cam',type:'match'},
+  {date:'Jun 26',match:'Group stage',idea:'React to biggest result FAST (within 2hrs)',fmt:'face-cam',type:'match'},
+  {date:'Jun 27',match:'Group stage ends',idea:'Final group standings — who advanced?',fmt:'graphic',type:'match'},
+  {date:'Jun 28',match:null,idea:'Full bracket: my Round of 32 predictions',fmt:'graphic',type:'graphic'},
+  {date:'Jun 29',match:'Round of 32 begins',idea:'Biggest R32 matchup preview',fmt:'face-cam',type:'match'},
+  {date:'Jun 30',match:'R32 continues',idea:'Upset alert — post within 30 min if it happens',fmt:'face-cam',type:'match'},
+  {date:'Jul 1',match:'R32',idea:'3 teams that will NOT make the QF',fmt:'voiceover',type:'script'},
+  {date:'Jul 2',match:'R32',idea:'Player of the tournament — debate bait',fmt:'face-cam',type:'script'},
+  {date:'Jul 3',match:'R32',idea:'React to wildest result of Round of 32',fmt:'face-cam',type:'match'},
+  {date:'Jul 4',match:'R32 ends',idea:'Round of 16 confirmed — hype post',fmt:'graphic',type:'match'},
+  {date:'Jul 5',match:'Round of 16',idea:'QF prediction bracket',fmt:'graphic',type:'match'},
+  {date:'Jul 6',match:'R16',idea:'The matchup I am most scared of for my pick',fmt:'face-cam',type:'script'},
+  {date:'Jul 7',match:'R16',idea:'Human story: diaspora watching their country',fmt:'voiceover',type:'script'},
+  {date:'Jul 8',match:'R16',idea:'The breakout star of this tournament',fmt:'stat card',type:'graphic'},
+  {date:'Jul 9',match:'R16 ends',idea:'Quarterfinal confirmed — who wins it all?',fmt:'graphic',type:'match'},
+  {date:'Jul 10',match:'Quarterfinals',idea:'QF Day 1 REACTION — post within 2hrs of FT',fmt:'face-cam',type:'match'},
+  {date:'Jul 11',match:'Quarterfinals',idea:'QF Day 2 — debate the results',fmt:'face-cam',type:'match'},
+  {date:'Jul 12',match:null,idea:'Semifinal preview — who goes through?',fmt:'graphic',type:'graphic'},
+  {date:'Jul 14',match:'Semifinals',idea:'SF Day 1 — react within 90 minutes of FT',fmt:'face-cam',type:'match'},
+  {date:'Jul 15',match:'Semifinals',idea:'SF Day 2 — FINAL IS SET. Who wins it?',fmt:'face-cam',type:'match'},
+  {date:'Jul 16',match:null,idea:'FINAL PREVIEW — full breakdown',fmt:'voiceover',type:'script'},
+  {date:'Jul 18',match:null,idea:'24 HOURS to the final — hype countdown',fmt:'graphic',type:'graphic'},
+  {date:'Jul 19',match:'🏆 FINAL — MetLife Stadium NJ',idea:'Post reaction WITHIN 20 MINUTES of final whistle',fmt:'URGENT face-cam',type:'match'},
+];
+
+function buildCalendar() {
+  const grid = document.getElementById('calGrid');
+  if (!grid) return;
+  grid.innerHTML = '';
+  const list = calFilter === 'all' ? CAL : CAL.filter(d => {
+    if (calFilter==='match') return d.type==='match';
+    if (calFilter==='graphic') return d.type==='graphic';
+    if (calFilter==='script') return d.type==='script';
+    return true;
+  });
+  list.forEach(d => {
+    const card = document.createElement('div');
+    card.className = 'cal-day' + (d.type==='match' ? ' match-day' : '');
+    card.innerHTML = '<div class="cal-date">'+d.date+'</div>'
+      + (d.match ? '<div class="match-tag">⚽ '+d.match+'</div>' : '')
+      + '<div class="cal-idea">'+d.idea+'</div>'
+      + '<span class="cal-format">'+d.fmt+'</span>';
+    card.onclick = function() {
+      document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.getElementById('panel-scripts').classList.add('active');
+      document.getElementById('tab-scripts').classList.add('active');
+      document.getElementById('sg-topic').value = d.idea;
+      showToast('Loaded → now hit Generate!');
+    };
+    grid.appendChild(card);
+  });
+}
+
+// ═══════════════════════════════════════════════
+// HASHTAGS
+// ═══════════════════════════════════════════════
+const HT = {
+  general:{tags:['#WorldCup2026','#WC2026','#soccer','#football','#FIFA2026','#WorldCup','#soccertiktok','#footballtiktok','#sports','#worldcupgoals','#futbol'],notes:'Core set for all WC content. Always include #WC2026 and #WorldCup2026. Avoid official ™ marks. Mix broad (#soccer) with niche (#WC2026).'},
+  match_day:{tags:['#WC2026','#WorldCup2026','#matchday','#soccer','#football','#gameday','#footballtiktok','#soccertiktok','#WCmatchday','#worldcuplive','#footballpredictions'],notes:'Post 1-2hrs BEFORE for pre-match content. Post within 90 min after FT for reactions — the algorithm peak window is tight.'},
+  upset:{tags:['#WC2026','#WorldCup2026','#upset','#shock','#worldcupshock','#footballshock','#sports','#viral','#worldcup','#soccer','#footballtiktok'],notes:'SPEED IS EVERYTHING for upset content. Post within 30 minutes. Add the specific team hashtag (#Germany, #Brazil, etc.).'},
+  prediction:{tags:['#WC2026predictions','#WorldCup2026','#mypredictions','#footballpredictions','#soccerpredictions','#WC2026','#whowinsworldcup','#worldcupwinner','#soccer','#football','#bracket2026'],notes:'Prediction content gets massive save rates. Always end caption with "Who do YOU think wins? Drop your pick below 👇". Saves + comments = algorithm rocket.'},
+  oracle:{tags:['#AIOracle','#AIprediction','#AIwasWrong','#OraclePredicts','#WC2026','#WorldCup2026','#soccer','#football','#footballpredictions','#AIvsreality'],notes:'For the Oracle series, the failure/accountability videos outperform prediction videos 3:1. Lead with the dramatic fail in caption. Running scoreboard posts ("AI is now 8/22") get strong shares.'},
+  human_story:{tags:['#footballstories','#WorldCup2026','#WC2026','#soccer','#football','#sportsstories','#humanstory','#footballfans','#worldcup','#diaspora','#footballemotion'],notes:'Human story content gets saved at very high rates. People save things that make them feel understood. The diaspora and "watching at 3am" angles are universally relatable.'},
+  nepal:{tags:['#Nepal','#Nepali','#NepaliDiaspora','#NepalFootball','#WorldCup2026','#WC2026','#soccer','#NepaliTikTok','#Kathmandu','#footballNepal','#नेपाल'],notes:'Nepal niche = almost ZERO competition. The Nepali diaspora is extremely engaged on TikTok. Mix English and Nepali tags. "What if Nepal qualified?" content performs especially well with diaspora audiences globally.'},
+  usa:{tags:['#USMNT','#USsoccer','#TeamUSA','#WC2026','#WorldCup2026','#soccer','#americansoccer','#USAvsworld','#footballUSA','#WC2026USA','#footballtiktok'],notes:'USMNT content performs very well with US audiences. Dallas, Miami, NYC host games — tag host cities on match days for local reach boost.'},
+  brazil:{tags:['#Brazil','#Selecao','#BrazilNT','#WC2026','#WorldCup2026','#football','#brazilianfootball','#soccer','#ViniciusJr','#futbol'],notes:'Brazil has the largest global football fanbase. Content with #Brazil gets pushed internationally. Post during Brazilian timezone (GMT-3) for peak engagement.'},
+  argentina:{tags:['#Argentina','#Messi','#AlbiCeleste','#WC2026','#WorldCup2026','#futbol','#football','#soccer','#ArgentinaNT','#worldchampions','#footballtiktok'],notes:'Argentina defending champion = massive engagement. Any Messi content still goes viral. Debate format: "Can Argentina repeat?" drives huge comments.'},
+  england:{tags:['#England','#ThreeLions','#ENGFUT','#WC2026','#WorldCup2026','#football','#englandfootball','#soccertiktok','#Bellingham','#EnglandNT','#footballtiktok'],notes:'England fans are extremely active. The suffering/hope narrative drives massive engagement. Classic format: "This is England\'s year... right?" Always gets comments.'},
+  host_city:{tags:['#Dallas','#DFW','#WC2026Dallas','#ATTStadium','#WorldCup2026','#WC2026','#soccer','#TexasSoccer','#footballDallas','#WC2026USA','#sports'],notes:'Dallas host city content hits LOCAL audiences who will actually be at games. Consider filming near AT&T Stadium on match days for original local content nobody else has.'},
+};
+
+function renderHashtags() {
+  const sit = document.getElementById('ht-situation').value;
+  const team = document.getElementById('ht-team').value.trim();
+  const set = HT[sit];
+  if (!set) return;
+  let tags = [...set.tags];
+  if (team) tags.push('#'+team.replace(/\s+/g,''));
+  document.getElementById('ht-box').textContent = tags.join(' ');
+  document.getElementById('ht-count').textContent = tags.length + ' hashtags';
+  document.getElementById('ht-notes').textContent = set.notes;
+}
+</script>
+</body>
+</html>
