@@ -3,589 +3,859 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>WC 2026 Match Card Generator</title>
+<title>WC 2026 Content Studio</title>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700;800&display=swap');
-
-:root {
-  --bg:#0d1117; --surface:#161b22; --card:#1c2128; --border:#30363d;
-  --gold:#c9a84c; --gold2:#e8c96a; --red:#da3633; --white:#f0f6fc;
-  --muted:#8b949e; --dim:#484f58;
-  --r:10px; --rl:16px;
-  --fd:'Bebas Neue',sans-serif;
-  --fb:'Inter',sans-serif;
-}
-*{box-sizing:border-box;margin:0;padding:0;}
-body{background:var(--bg);color:var(--white);font-family:var(--fb);min-height:100vh;}
-
-/* HEADER */
-header{
-  background:linear-gradient(135deg,#0d1117 0%,#161b22 50%,#0d1117 100%);
-  border-bottom:2px solid var(--gold);
-  padding:0;overflow:hidden;position:relative;
-}
-.header-inner{
-  max-width:1100px;margin:0 auto;padding:20px 24px;
-  display:flex;align-items:center;gap:20px;position:relative;z-index:1;
-}
-.trophy-icon{font-size:40px;filter:drop-shadow(0 0 12px rgba(201,168,76,.6));}
-.header-title{font-family:var(--fd);font-size:36px;color:var(--gold);letter-spacing:4px;line-height:1;}
-.header-sub{font-size:12px;color:var(--muted);letter-spacing:.12em;text-transform:uppercase;margin-top:4px;}
-.header-info{margin-left:auto;text-align:right;}
-.header-dates{font-family:var(--fd);font-size:20px;color:var(--gold);letter-spacing:2px;}
-.header-hosts{font-size:11px;color:var(--muted);margin-top:3px;}
-/* Header decorative lines */
-header::before{
-  content:'';position:absolute;top:0;left:0;right:0;bottom:0;
-  background:repeating-linear-gradient(90deg,transparent,transparent 60px,rgba(201,168,76,.03) 60px,rgba(201,168,76,.03) 61px);
-}
-
-/* LAYOUT */
-.main{max-width:1100px;margin:0 auto;padding:24px;display:grid;grid-template-columns:340px 1fr;gap:24px;align-items:start;}
-@media(max-width:800px){.main{grid-template-columns:1fr;}}
-
-/* SIDEBAR */
-.sidebar{position:sticky;top:16px;}
-.panel-title{font-family:var(--fd);font-size:22px;color:var(--gold);letter-spacing:2px;margin-bottom:4px;}
-.panel-sub{font-size:12px;color:var(--muted);margin-bottom:16px;}
-
-/* SEARCH */
-.search-wrap{position:relative;margin-bottom:12px;}
-.search-wrap input{
-  width:100%;background:var(--card);border:1px solid var(--border);border-radius:var(--r);
-  color:var(--white);font-family:var(--fb);font-size:14px;padding:10px 12px 10px 36px;outline:none;
-  transition:border-color .15s;
-}
-.search-wrap input:focus{border-color:var(--gold);}
-.search-icon{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:15px;}
-
-/* STAGE FILTER */
-.stage-filter{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px;}
-.sf-btn{
-  padding:4px 12px;border-radius:20px;font-size:11px;font-weight:600;cursor:pointer;
-  border:1px solid var(--border);color:var(--muted);background:none;
-  transition:all .15s;font-family:var(--fb);
-}
-.sf-btn:hover{border-color:var(--dim);color:var(--white);}
-.sf-btn.active{background:rgba(201,168,76,.15);color:var(--gold);border-color:rgba(201,168,76,.4);}
-
-/* MATCH LIST */
-.match-list{max-height:560px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--dim) transparent;}
-.match-list::-webkit-scrollbar{width:4px;}
-.match-list::-webkit-scrollbar-thumb{background:var(--dim);border-radius:2px;}
-
-.match-item{
-  display:flex;align-items:center;gap:10px;
-  padding:10px 12px;border-radius:var(--r);cursor:pointer;
-  border:1px solid transparent;transition:all .15s;margin-bottom:4px;
-  background:var(--card);
-}
-.match-item:hover{border-color:var(--border);background:var(--surface);}
-.match-item.active{border-color:var(--gold);background:rgba(201,168,76,.08);}
-.mi-flags{display:flex;align-items:center;gap:4px;font-size:20px;flex-shrink:0;width:56px;}
-.mi-divider{font-size:10px;color:var(--dim);}
-.mi-info{flex:1;min-width:0;}
-.mi-teams{font-size:13px;font-weight:600;color:var(--white);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.mi-meta{font-size:11px;color:var(--muted);margin-top:2px;}
-.mi-stage{font-size:10px;padding:1px 7px;border-radius:8px;background:var(--border);color:var(--muted);flex-shrink:0;}
-.mi-stage.final{background:rgba(201,168,76,.2);color:var(--gold);}
-.mi-stage.sf{background:rgba(218,54,51,.2);color:#f47068;}
-.mi-stage.qf{background:rgba(68,136,255,.15);color:#79b8ff;}
-
-/* CARD CONTROLS */
-.controls-card{
-  background:var(--surface);border:1px solid var(--border);border-radius:var(--rl);
-  padding:16px;margin-bottom:16px;
-}
-.ctrl-label{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;}
-.template-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
-.tmpl-btn{
-  aspect-ratio:9/16;background:var(--card);border:1.5px solid var(--border);border-radius:var(--r);
-  cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;
-  transition:border-color .15s;
-}
-.tmpl-btn:hover{border-color:var(--dim);}
-.tmpl-btn.active{border-color:var(--gold);}
-.tmpl-icon{font-size:20px;}
-.tmpl-name{font-size:9px;color:var(--muted);text-align:center;line-height:1.3;}
-
-/* EXPORT BUTTONS */
-.export-row{display:flex;gap:8px;}
-.btn{
-  flex:1;padding:12px;border:none;border-radius:var(--r);
-  font-family:var(--fb);font-size:13px;font-weight:700;cursor:pointer;
-  display:flex;align-items:center;justify-content:center;gap:6px;
-  transition:opacity .15s,transform .1s;
-}
-.btn:active{transform:scale(.97);}
-.btn-gold{background:var(--gold);color:#000;}
-.btn-outline{background:none;border:1px solid var(--border);color:var(--white);}
-.btn:disabled{opacity:.4;cursor:not-allowed;}
-
-/* CANVAS AREA */
-.canvas-area{background:var(--surface);border:1px solid var(--border);border-radius:var(--rl);padding:20px;}
-.canvas-label{font-family:var(--fd);font-size:18px;color:var(--gold);letter-spacing:2px;margin-bottom:4px;}
-.canvas-hint{font-size:12px;color:var(--muted);margin-bottom:16px;}
-.canvas-wrap{
-  aspect-ratio:9/16;max-width:360px;margin:0 auto;
-  border-radius:var(--r);overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,.5);
-  background:#000;
-}
-canvas{width:100%;height:100%;display:block;}
-
-/* EMPTY STATE */
-.empty-state{
-  aspect-ratio:9/16;max-width:360px;margin:0 auto;
-  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;
-  border:2px dashed var(--border);border-radius:var(--r);
-  color:var(--muted);
-}
-.empty-state .es-icon{font-size:48px;opacity:.4;}
-.empty-state p{font-size:13px;text-align:center;max-width:200px;line-height:1.5;}
-
-/* TOAST */
-#toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--gold);color:#000;font-size:13px;font-weight:700;padding:10px 22px;border-radius:30px;opacity:0;transition:opacity .2s,transform .2s;pointer-events:none;z-index:999;}
-#toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
-
-/* SELECTED MATCH PREVIEW */
-.selected-info{
-  background:var(--card);border:1px solid var(--border);border-radius:var(--r);
-  padding:12px;margin-bottom:14px;display:none;
-}
-.selected-info.visible{display:block;}
-.si-teams{font-family:var(--fd);font-size:22px;color:var(--white);letter-spacing:1px;}
-.si-meta{font-size:12px;color:var(--muted);margin-top:4px;}
-.si-stage-badge{display:inline-block;padding:2px 10px;border-radius:10px;font-size:11px;font-weight:600;margin-top:6px;}
+  @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap');
+  :root {
+    --pitch:#0a0a0a; --surface:#111111; --card:#181818; --border:#2a2a2a;
+    --accent:#c9a84c; --accent2:#e8c96a; --green:#1a9e52; --red:#d93025;
+    --text:#f0f0f0; --muted:#888; --dim:#555;
+    --font-d:'Bebas Neue',sans-serif; --font-b:'Inter',sans-serif; --font-m:'Space Mono',monospace;
+    --r:8px; --rl:14px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{background:var(--pitch);color:var(--text);font-family:var(--font-b);font-size:14px;min-height:100vh;}
+  header{border-bottom:1px solid var(--border);padding:14px 20px;display:flex;align-items:center;gap:14px;background:var(--surface);position:sticky;top:0;z-index:100;}
+  .logo{font-family:var(--font-d);font-size:28px;color:var(--accent);letter-spacing:2px;line-height:1;}
+  .logo-sub{font-size:11px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;}
+  .logo-sub strong{color:var(--accent);}
+  .tabs{display:flex;gap:2px;padding:12px 20px 0;background:var(--surface);border-bottom:1px solid var(--border);overflow-x:auto;scrollbar-width:none;}
+  .tabs::-webkit-scrollbar{display:none;}
+  .tab-btn{padding:8px 16px;background:none;border:none;border-bottom:2px solid transparent;color:var(--muted);font-family:var(--font-b);font-size:13px;font-weight:500;cursor:pointer;white-space:nowrap;transition:color .15s,border-color .15s;}
+  .tab-btn:hover{color:var(--text);}
+  .tab-btn.active{color:var(--accent);border-bottom-color:var(--accent);}
+  .main{padding:20px;max-width:900px;margin:0 auto;}
+  .panel{display:none;} .panel.active{display:block;}
+  .sec-title{font-family:var(--font-d);font-size:30px;color:var(--accent);letter-spacing:2px;line-height:1;margin-bottom:4px;}
+  .sec-desc{font-size:13px;color:var(--muted);margin-bottom:18px;}
+  .form-group{margin-bottom:14px;}
+  .form-label{display:block;font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:6px;}
+  input,select,textarea{width:100%;background:var(--card);border:1px solid var(--border);border-radius:var(--r);color:var(--text);font-family:var(--font-b);font-size:14px;padding:10px 12px;outline:none;transition:border-color .15s;}
+  input:focus,select:focus,textarea:focus{border-color:var(--accent);}
+  select option{background:var(--card);}
+  textarea{resize:vertical;min-height:70px;}
+  .form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  @media(max-width:520px){.form-row{grid-template-columns:1fr;}}
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:11px 20px;border-radius:var(--r);font-family:var(--font-b);font-size:13px;font-weight:600;cursor:pointer;border:none;transition:opacity .15s,transform .1s;letter-spacing:.03em;}
+  .btn:active{transform:scale(.97);}
+  .btn-primary{background:var(--accent);color:#000;}
+  .btn-secondary{background:var(--card);color:var(--text);border:1px solid var(--border);}
+  .btn-green{background:var(--green);color:#fff;}
+  .btn-red{background:var(--red);color:#fff;}
+  .btn-sm{padding:7px 14px;font-size:12px;}
+  .btn:disabled{opacity:.4;cursor:not-allowed;}
+  .btn-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px;}
+  .output-box{background:var(--card);border:1px solid var(--border);border-radius:var(--rl);padding:16px;margin-top:14px;position:relative;}
+  .output-label{font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin-bottom:10px;}
+  .output-text{font-size:13px;line-height:1.7;color:var(--text);white-space:pre-wrap;word-break:break-word;}
+  .copy-btn{position:absolute;top:12px;right:12px;background:var(--border);border:none;border-radius:6px;color:var(--muted);font-size:11px;padding:4px 10px;cursor:pointer;}
+  .copy-btn:hover{background:var(--dim);color:var(--text);}
+  .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;}
+  .chip{background:var(--border);border-radius:20px;padding:3px 10px;font-size:12px;color:var(--muted);cursor:pointer;transition:background .12s,color .12s;border:1px solid transparent;}
+  .chip:hover,.chip.active{background:rgba(201,168,76,.15);color:var(--accent);border-color:rgba(201,168,76,.3);}
+  .spinner{display:inline-block;width:16px;height:16px;border:2px solid rgba(201,168,76,.3);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+  .hashtag-box{background:rgba(201,168,76,.07);border:1px solid rgba(201,168,76,.2);border-radius:var(--r);padding:10px 12px;font-family:var(--font-m);font-size:12px;color:var(--accent2);line-height:1.8;margin-top:10px;word-break:break-all;}
+  .divider{border:none;border-top:1px solid var(--border);margin:20px 0;}
+  .info-box{background:rgba(201,168,76,.08);border:1px solid rgba(201,168,76,.2);border-radius:var(--r);padding:12px 16px;margin-bottom:18px;font-size:13px;line-height:1.7;color:var(--muted);}
+  .info-box strong{color:var(--accent);}
+  /* Canvas / stat card */
+  .card-studio{display:grid;grid-template-columns:1fr 340px;gap:20px;align-items:start;}
+  @media(max-width:720px){.card-studio{grid-template-columns:1fr;}}
+  .canvas-wrap{position:relative;aspect-ratio:9/16;border-radius:var(--rl);overflow:hidden;background:#000;box-shadow:0 0 0 1px var(--border);}
+  #statCanvas{width:100%;height:100%;display:block;}
+  /* Calendar */
+  .cal-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin-top:12px;}
+  .cal-day{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:12px;cursor:pointer;transition:border-color .15s;}
+  .cal-day:hover,.cal-day.match-day{border-color:rgba(201,168,76,.4);}
+  .cal-date{font-size:10px;color:var(--muted);margin-bottom:4px;font-family:var(--font-m);}
+  .cal-idea{font-size:12px;color:var(--text);line-height:1.4;}
+  .cal-format{display:inline-block;margin-top:6px;font-size:10px;padding:2px 7px;border-radius:10px;background:var(--border);color:var(--muted);}
+  .match-tag{font-size:10px;color:var(--accent);font-weight:600;margin-bottom:3px;font-family:var(--font-m);}
+  /* Oracle scoreboard */
+  .score-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px;}
+  .score-card{background:var(--card);border-radius:var(--r);padding:14px;text-align:center;}
+  .score-num{font-size:32px;font-weight:700;}
+  .score-label{font-size:11px;color:var(--muted);}
+  /* Story sparks */
+  .spark-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;}
+  .spark-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:10px 12px;cursor:pointer;transition:border-color .15s;}
+  .spark-card:hover{border-color:rgba(201,168,76,.5);}
+  /* Toast */
+  #toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--accent);color:#000;font-size:13px;font-weight:600;padding:10px 22px;border-radius:30px;opacity:0;transition:opacity .2s,transform .2s;pointer-events:none;z-index:999;}
+  #toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+  /* Result Card */
+  .rc-wrap{display:grid;grid-template-columns:380px 1fr;gap:20px;align-items:start;}
+  @media(max-width:800px){.rc-wrap{grid-template-columns:1fr;}}
+  .rc-panel{background:var(--card);border:1px solid var(--border);border-radius:var(--rl);overflow:hidden;margin-bottom:14px;}
+  .rc-panel-head{padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;}
+  .rc-panel-title{font-family:var(--font-d);font-size:18px;color:var(--accent);letter-spacing:2px;}
+  .rc-panel-body{padding:16px;}
+  .paste-area{width:100%;min-height:80px;background:var(--pitch);border:1.5px dashed var(--border);border-radius:var(--r);color:var(--text);font-family:var(--font-b);font-size:13px;padding:12px;outline:none;resize:vertical;transition:border-color .15s;line-height:1.6;}
+  .paste-area:focus{border-color:var(--accent);}
+  .parse-btn{width:100%;margin-top:8px;padding:10px;background:rgba(201,168,76,.12);border:1px solid rgba(201,168,76,.25);border-radius:var(--r);color:var(--accent);font-family:var(--font-b);font-size:13px;font-weight:600;cursor:pointer;transition:background .15s;}
+  .parse-btn:hover{background:rgba(201,168,76,.22);}
+  .parse-ok{font-size:11px;padding:6px 10px;border-radius:6px;background:rgba(26,158,82,.15);color:#7ee787;border:1px solid rgba(26,158,82,.25);margin-top:6px;display:none;}
+  .parse-fail{font-size:11px;padding:6px 10px;border-radius:6px;background:rgba(218,54,51,.15);color:#f47068;border:1px solid rgba(218,54,51,.25);margin-top:6px;display:none;}
+  .score-row-rc{display:grid;grid-template-columns:1fr 44px 1fr;gap:8px;align-items:center;margin-bottom:12px;}
+  .score-inp{text-align:center;font-size:26px;font-weight:800;padding:8px;}
+  .scorers-list{display:flex;flex-direction:column;gap:6px;}
+  .scorer-row-rc{display:grid;grid-template-columns:1fr 68px 22px;gap:6px;align-items:center;}
+  .scorer-row-rc input{font-size:12px;padding:7px 9px;}
+  .scorer-add-rc{background:none;border:1px dashed var(--border);border-radius:var(--r);color:var(--muted);font-size:16px;cursor:pointer;padding:5px 8px;margin-top:4px;transition:all .15s;width:100%;}
+  .scorer-add-rc:hover{border-color:var(--accent);color:var(--accent);}
+  .scorer-del-rc{background:none;border:none;color:var(--dim);cursor:pointer;font-size:13px;padding:0;}
+  .scorer-del-rc:hover{color:var(--red);}
+  .hl-box{background:var(--pitch);border:1px solid var(--border);border-radius:var(--r);padding:10px 12px;margin-bottom:10px;}
+  .hl-label{font-size:10px;color:var(--muted);margin-bottom:3px;}
+  .hl-value{font-family:var(--font-d);font-size:18px;color:var(--accent);letter-spacing:1px;}
+  .rc-preview-wrap{position:relative;border-radius:var(--r);overflow:hidden;background:#000;box-shadow:0 8px 32px rgba(0,0,0,.5);}
+  #rcCanvas{width:100%;display:block;}
+  .platform-row{display:flex;gap:4px;margin-bottom:12px;}
+  .ptab-rc{padding:6px 12px;background:none;border:none;border-bottom:2px solid transparent;color:var(--muted);font-family:var(--font-b);font-size:12px;font-weight:600;cursor:pointer;transition:color .15s,border-color .15s;white-space:nowrap;}
+  .ptab-rc:hover{color:var(--text);}
+  .ptab-rc.active{color:var(--accent);border-bottom-color:var(--accent);}
+  .safe-toggle{font-size:11px;color:var(--muted);display:flex;align-items:center;gap:6px;cursor:pointer;margin-top:8px;}
+  .safe-toggle input{width:auto;margin:0;}
+  .safe-zone-overlay{position:absolute;pointer-events:none;border:2px dashed rgba(26,158,82,.4);border-radius:4px;display:none;}
+  .platform-ui-overlay{position:absolute;top:0;left:0;right:0;bottom:0;pointer-events:none;}
 </style>
 </head>
 <body>
 
 <header>
-  <div class="header-inner">
-    <div class="trophy-icon">🏆</div>
-    <div>
-      <div class="header-title">FIFA WORLD CUP 2026</div>
-      <div class="header-sub">Match Card Generator · USA · Canada · Mexico</div>
-    </div>
-    <div class="header-info">
-      <div class="header-dates">JUN 11 – JUL 19</div>
-      <div class="header-hosts">🇺🇸 United States &nbsp;·&nbsp; 🇨🇦 Canada &nbsp;·&nbsp; 🇲🇽 Mexico</div>
-    </div>
+  <div class="logo">WC2026</div>
+  <div>
+    <div style="font-size:13px;font-weight:600;letter-spacing:.05em;">CONTENT STUDIO</div>
+    <div class="logo-sub">Jun 11 – Jul 19 &nbsp;·&nbsp; <strong>48 teams · 104 matches</strong></div>
   </div>
+  <div style="margin-left:auto;font-family:var(--font-m);font-size:12px;color:var(--accent);" id="headerTimer">--</div>
 </header>
+
+<div class="tabs">
+  <button class="tab-btn active" id="tab-scripts" onclick="switchTab('scripts',this)">📝 Script</button>
+  <button class="tab-btn" id="tab-statcard" onclick="switchTab('statcard',this)">⚡ Stat Card</button>
+  <button class="tab-btn" id="tab-prediction" onclick="switchTab('prediction',this)">🏆 Prediction</button>
+  <button class="tab-btn" id="tab-oracle" onclick="switchTab('oracle',this)">🔮 AI Oracle</button>
+  <button class="tab-btn" id="tab-human" onclick="switchTab('human',this)">❤️ Human Story</button>
+  <button class="tab-btn" id="tab-calendar" onclick="switchTab('calendar',this)">📅 Calendar</button>
+  <button class="tab-btn" id="tab-hashtags" onclick="switchTab('hashtags',this)">🔥 Hashtags</button>
+  <button class="tab-btn" id="tab-matchcards" onclick="switchTab('matchcards',this)">🃏 Match Cards</button>
+  <button class="tab-btn" id="tab-result" onclick="switchTab('result',this)">📊 Result Card</button>
+</div>
 
 <div class="main">
 
-  <!-- SIDEBAR -->
-  <div class="sidebar">
-    <div class="panel-title">MATCH SCHEDULE</div>
-    <div class="panel-sub">Select any match to generate a card</div>
-
-    <div class="search-wrap">
-      <span class="search-icon">🔍</span>
-      <input type="text" id="searchInput" placeholder="Search team or country…" oninput="filterMatches()">
+<!-- ══ TAB 1: SCRIPT GENERATOR ══ -->
+<div id="panel-scripts" class="panel active">
+  <div class="sec-title">SCRIPT GENERATOR</div>
+  <div class="sec-desc">AI-powered hooks, scripts, captions & hashtags for every format</div>
+  <div class="form-row">
+    <div class="form-group">
+      <label class="form-label">Content format</label>
+      <select id="sg-format">
+        <option value="hot_take">🔥 Hot take / reaction</option>
+        <option value="stat_reveal">⚡ Stat reveal</option>
+        <option value="prediction">🏆 Bold AI prediction</option>
+        <option value="prediction_fail">💀 Prediction FAIL (accountability)</option>
+        <option value="dark_horse">🐴 Dark horse team</option>
+        <option value="history">📖 WC history moment</option>
+        <option value="unknown_fact">🤯 Fact nobody knows</option>
+        <option value="fan_psychology">👥 Fan psychology / emotion</option>
+        <option value="what_if">✨ What if? (AI scenario)</option>
+        <option value="debate">💬 Debate bait</option>
+        <option value="daily_wrap">📋 Daily match wrap</option>
+        <option value="human_story">❤️ Human story (not score)</option>
+        <option value="nepali_angle">🇳🇵 Nepal / diaspora angle</option>
+        <option value="countdown">⏱ Countdown hype</option>
+      </select>
     </div>
-
-    <div class="stage-filter" id="stageFilter"></div>
-
-    <div class="match-list" id="matchList"></div>
-  </div>
-
-  <!-- RIGHT PANEL -->
-  <div>
-    <!-- Selected match info -->
-    <div class="selected-info" id="selectedInfo">
-      <div class="si-teams" id="siTeams"></div>
-      <div class="si-meta" id="siMeta"></div>
-      <div class="si-stage-badge" id="siStage"></div>
-    </div>
-
-    <!-- Template + export controls -->
-    <div class="controls-card">
-      <div class="ctrl-label" style="margin-bottom:10px;">Card template</div>
-      <div class="template-grid" id="templateGrid">
-        <div class="tmpl-btn active" data-tmpl="classic" onclick="selectTemplate(this)">
-          <div class="tmpl-icon">⚽</div>
-          <div class="tmpl-name">Classic Match</div>
-        </div>
-        <div class="tmpl-btn" data-tmpl="prediction" onclick="selectTemplate(this)">
-          <div class="tmpl-icon">🔮</div>
-          <div class="tmpl-name">Oracle Prediction</div>
-        </div>
-        <div class="tmpl-btn" data-tmpl="hype" onclick="selectTemplate(this)">
-          <div class="tmpl-icon">🔥</div>
-          <div class="tmpl-name">Hype / Countdown</div>
-        </div>
-        <div class="tmpl-btn" data-tmpl="result" onclick="selectTemplate(this)">
-          <div class="tmpl-icon">📊</div>
-          <div class="tmpl-name">Result Card</div>
-        </div>
-        <div class="tmpl-btn" data-tmpl="stat" onclick="selectTemplate(this)">
-          <div class="tmpl-icon">⚡</div>
-          <div class="tmpl-name">Stat Drop</div>
-        </div>
-        <div class="tmpl-btn" data-tmpl="quote" onclick="selectTemplate(this)">
-          <div class="tmpl-icon">💬</div>
-          <div class="tmpl-name">Hot Take</div>
-        </div>
-      </div>
-
-      <!-- Result/Stat/Quote extra inputs -->
-      <div id="extraInputs" style="margin-top:12px;display:none;">
-        <div id="resultInputs" style="display:none;">
-          <div style="display:grid;grid-template-columns:1fr 60px 1fr;gap:8px;align-items:center;">
-            <input type="number" id="score1" placeholder="0" min="0" max="20" style="text-align:center;font-size:22px;font-weight:700;" oninput="renderCard()">
-            <div style="text-align:center;color:var(--muted);font-size:20px;font-weight:700;">–</div>
-            <input type="number" id="score2" placeholder="0" min="0" max="20" style="text-align:center;font-size:22px;font-weight:700;" oninput="renderCard()">
-          </div>
-        </div>
-        <div id="statInputs" style="display:none;">
-          <input type="text" id="statNum" placeholder="Stat number e.g. 47" style="text-align:center;font-size:18px;font-weight:700;margin-bottom:8px;" oninput="renderCard()">
-          <input type="text" id="statLabel" placeholder="Stat description e.g. Years since Brazil last won" oninput="renderCard()">
-        </div>
-        <div id="quoteInputs" style="display:none;">
-          <textarea id="quoteText" placeholder="Your hot take or quote about this match…" style="min-height:80px;" oninput="renderCard()"></textarea>
-        </div>
-      </div>
-
-      <div style="margin-top:14px;">
-        <div class="ctrl-label" style="margin-bottom:8px;">Watermark</div>
-        <input type="text" id="watermark" value="@WC2026Updates" oninput="renderCard()" style="font-size:13px;padding:8px 10px;">
-      </div>
-
-      <div class="export-row" style="margin-top:14px;">
-        <button class="btn btn-gold" id="saveBtn" onclick="savePNG()" disabled>📥 Save PNG</button>
-        <button class="btn btn-outline" id="copyBtn" onclick="copyCanvas()" disabled>⧉ Copy</button>
-      </div>
-    </div>
-
-    <!-- Canvas preview -->
-    <div class="canvas-area">
-      <div class="canvas-label">PREVIEW</div>
-      <div class="canvas-hint">1080 × 1920 px · 9:16 · Ready for TikTok / Reels / Shorts</div>
-      <div class="canvas-wrap" id="canvasWrap">
-        <div class="empty-state" id="emptyState">
-          <div class="es-icon">⚽</div>
-          <p>Select a match from the schedule to generate your card</p>
-        </div>
-        <canvas id="mainCanvas" width="1080" height="1920" style="display:none;"></canvas>
-      </div>
+    <div class="form-group">
+      <label class="form-label">Video style</label>
+      <select id="sg-style">
+        <option value="face_cam">🎙 Face-cam / commentary</option>
+        <option value="voiceover">🎤 Voiceover (faceless)</option>
+        <option value="text_only">📱 Text-on-screen only</option>
+      </select>
     </div>
   </div>
-
+  <div class="form-group">
+    <label class="form-label">Topic / match / team</label>
+    <input type="text" id="sg-topic" placeholder="e.g. Brazil vs Argentina Group C, or Morocco upset chances">
+  </div>
+  <div class="form-group">
+    <label class="form-label">Your angle (optional)</label>
+    <input type="text" id="sg-angle" placeholder="e.g. I think USA will surprise everyone — or leave blank">
+  </div>
+  <div class="form-group">
+    <label class="form-label">Tone</label>
+    <div class="chips">
+      <span class="chip active" data-group="tone" data-val="hype">🔥 Hype</span>
+      <span class="chip" data-group="tone" data-val="analytical">🧠 Analytical</span>
+      <span class="chip" data-group="tone" data-val="controversial">⚡ Controversial</span>
+      <span class="chip" data-group="tone" data-val="humour">😂 Humour</span>
+      <span class="chip" data-group="tone" data-val="emotional">❤️ Emotional</span>
+    </div>
+  </div>
+  <div class="btn-row">
+    <button class="btn btn-primary" id="sg-btn" onclick="generateScript()">Generate script</button>
+    <button class="btn btn-secondary btn-sm" onclick="generateScript()">Regenerate</button>
+  </div>
+  <div id="sg-output" style="display:none">
+    <div class="output-box">
+      <div class="output-label">⚡ HOOK — First 1.5 seconds</div>
+      <button class="copy-btn" onclick="copyEl('sg-hook')">Copy</button>
+      <div class="output-text" id="sg-hook"></div>
+    </div>
+    <div class="output-box">
+      <div class="output-label">📢 SCRIPT BODY</div>
+      <button class="copy-btn" onclick="copyEl('sg-body')">Copy</button>
+      <div class="output-text" id="sg-body"></div>
+    </div>
+    <div class="output-box">
+      <div class="output-label">💬 CAPTION + CTA</div>
+      <button class="copy-btn" onclick="copyEl('sg-caption')">Copy</button>
+      <div class="output-text" id="sg-caption"></div>
+    </div>
+    <div class="hashtag-box" id="sg-tags"></div>
+  </div>
 </div>
 
+<!-- ══ TAB 2: STAT CARD ══ -->
+<div id="panel-statcard" class="panel">
+  <div class="sec-title">STAT CARD MAKER</div>
+  <div class="sec-desc">Animated 9:16 cards ready for TikTok — PNG or video export</div>
+  <div class="card-studio">
+    <div>
+      <div class="form-group">
+        <label class="form-label">Card type</label>
+        <select id="sc-type" onchange="onCardTypeChange()">
+          <option value="big_stat">Big stat reveal</option>
+          <option value="vs_card">Team vs Team</option>
+          <option value="countdown">Match countdown</option>
+          <option value="fact_drop">Fast fact</option>
+        </select>
+      </div>
+      <div id="sc-fields-big_stat">
+        <div class="form-group"><label class="form-label">The number / stat</label><input type="text" id="sc-stat-num" value="8" oninput="renderCard()"></div>
+        <div class="form-group"><label class="form-label">Stat label</label><input type="text" id="sc-stat-label" value="World Cup goals by Ronaldo" oninput="renderCard()"></div>
+        <div class="form-group"><label class="form-label">Source / context</label><input type="text" id="sc-stat-source" value="Most by any European player ever" oninput="renderCard()"></div>
+      </div>
+      <div id="sc-fields-vs_card" style="display:none">
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">Team 1</label><input type="text" id="sc-team1" value="BRAZIL" oninput="renderCard()"></div>
+          <div class="form-group"><label class="form-label">Team 2</label><input type="text" id="sc-team2" value="ARGENTINA" oninput="renderCard()"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">Flag 1</label><input type="text" id="sc-flag1" value="🇧🇷" oninput="renderCard()"></div>
+          <div class="form-group"><label class="form-label">Flag 2</label><input type="text" id="sc-flag2" value="🇦🇷" oninput="renderCard()"></div>
+        </div>
+        <div class="form-group"><label class="form-label">Date & time</label><input type="text" id="sc-matchdate" value="Jun 26 · 9PM ET" oninput="renderCard()"></div>
+        <div class="form-group"><label class="form-label">Venue</label><input type="text" id="sc-venue" value="MetLife Stadium, NJ" oninput="renderCard()"></div>
+      </div>
+      <div id="sc-fields-countdown" style="display:none">
+        <div class="form-group"><label class="form-label">Event name</label><input type="text" id="sc-cd-event" value="World Cup 2026 Kickoff" oninput="renderCard()"></div>
+        <div class="form-group"><label class="form-label">Target date/time</label><input type="datetime-local" id="sc-cd-date" oninput="renderCard()"></div>
+      </div>
+      <div id="sc-fields-fact_drop" style="display:none">
+        <div class="form-group"><label class="form-label">Headline</label><input type="text" id="sc-fact-head" value="DID YOU KNOW?" oninput="renderCard()"></div>
+        <div class="form-group"><label class="form-label">Fact body</label><textarea id="sc-fact-body" oninput="renderCard()">Only 8 countries have ever won the World Cup.</textarea></div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Accent color</label>
+        <div class="chips">
+          <span class="chip active" data-group="accent" data-color="#c9a84c">Gold</span>
+          <span class="chip" data-group="accent" data-color="#1a9e52">Green</span>
+          <span class="chip" data-group="accent" data-color="#4488ff">Blue</span>
+          <span class="chip" data-group="accent" data-color="#d93025">Red</span>
+          <span class="chip" data-group="accent" data-color="#ffffff">White</span>
+        </div>
+      </div>
+      <div class="form-group"><label class="form-label">Watermark</label><input type="text" id="sc-watermark" value="@WC2026Updates" oninput="renderCard()"></div>
+      <div class="btn-row">
+        <button class="btn btn-primary btn-sm" onclick="exportPNG('statCanvas','wc2026-card.png')">📥 PNG</button>
+        <button class="btn btn-green btn-sm" onclick="exportVideo('statCanvas','wc2026-card')">🎬 Video</button>
+      </div>
+      <div id="sc-status" style="font-size:11px;color:var(--muted);margin-top:8px;"></div>
+    </div>
+    <div>
+      <div class="canvas-wrap"><canvas id="statCanvas" width="1080" height="1920"></canvas></div>
+      <div style="font-size:11px;color:var(--dim);text-align:center;margin-top:6px;">9:16 · 1080×1920px</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ TAB 3: PREDICTION CARD ══ -->
+<div id="panel-prediction" class="panel">
+  <div class="sec-title">PREDICTION CARD</div>
+  <div class="sec-desc">Your WC2026 picks — export as shareable graphic</div>
+  <div class="form-row">
+    <div class="form-group"><label class="form-label">Champion 🏆</label><input type="text" id="pred-winner" value="Brazil 🇧🇷" oninput="renderPredCard()"></div>
+    <div class="form-group"><label class="form-label">Runner-up</label><input type="text" id="pred-runnerup" value="France 🇫🇷" oninput="renderPredCard()"></div>
+  </div>
+  <div class="form-row">
+    <div class="form-group"><label class="form-label">Dark horse 🐴</label><input type="text" id="pred-dark" value="Morocco 🇲🇦" oninput="renderPredCard()"></div>
+    <div class="form-group"><label class="form-label">Biggest upset 💣</label><input type="text" id="pred-upset" value="Germany exits group stage" oninput="renderPredCard()"></div>
+  </div>
+  <div class="form-group"><label class="form-label">Golden Boot ⚽</label><input type="text" id="pred-boot" value="Vinicius Jr." oninput="renderPredCard()"></div>
+  <div class="form-group"><label class="form-label">Hot take</label><input type="text" id="pred-take" value="Mbappe can't carry France alone" oninput="renderPredCard()"></div>
+  <div class="form-group"><label class="form-label">Watermark</label><input type="text" id="pred-wm" value="@WC2026Updates" oninput="renderPredCard()"></div>
+  <div style="margin-top:16px;background:var(--card);border:1px solid var(--border);border-radius:var(--rl);overflow:hidden;">
+    <canvas id="predCanvas" width="1080" height="1920" style="width:100%;max-width:320px;display:block;margin:0 auto;"></canvas>
+  </div>
+  <div class="btn-row" style="margin-top:12px;">
+    <button class="btn btn-primary btn-sm" onclick="exportPNG('predCanvas','wc2026-predictions.png')">📥 PNG</button>
+    <button class="btn btn-green btn-sm" onclick="exportVideo('predCanvas','wc2026-predictions')">🎬 Video</button>
+  </div>
+</div>
+
+<!-- ══ TAB 4: AI ORACLE ══ -->
+<div id="panel-oracle" class="panel">
+  <div class="sec-title">AI ORACLE</div>
+  <div class="sec-desc">Prediction accountability series — 104 matches = 208 videos</div>
+  <div class="info-box"><strong>The format:</strong> Before the match post AI prediction with % confidence. After the match post "AI was WRONG" or "AI nailed it." Failure content outperforms prediction content 3:1. The running scoreboard is content in itself.</div>
+  <div class="form-row">
+    <div>
+      <div style="font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);margin-bottom:12px;">BEFORE MATCH</div>
+      <div class="form-group"><label class="form-label">Match</label><input type="text" id="or-match" value="Brazil vs Germany"></div>
+      <div class="form-group">
+        <label class="form-label">Stage</label>
+        <select id="or-stage">
+          <option>Group stage</option><option>Round of 32</option><option>Round of 16</option>
+          <option>Quarterfinal</option><option>Semifinal</option><option>Final</option>
+        </select>
+      </div>
+      <div class="form-group"><label class="form-label">Your gut (optional)</label><input type="text" id="or-gut" placeholder="e.g. I think Germany upsets"></div>
+      <button class="btn btn-primary" style="width:100%" id="or-pre-btn" onclick="generateOraclePre()">Generate pre-match prediction</button>
+      <div id="or-pre-out" class="output-box" style="display:none">
+        <div class="output-label">🔮 ORACLE PREDICTION SCRIPT</div>
+        <button class="copy-btn" onclick="copyEl('or-pre-text')">Copy</button>
+        <div class="output-text" id="or-pre-text"></div>
+      </div>
+    </div>
+    <div>
+      <div style="font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--red);margin-bottom:12px;">AFTER MATCH</div>
+      <div class="form-group"><label class="form-label">Actual result</label><input type="text" id="or-result" placeholder="e.g. Germany 3-1 Brazil"></div>
+      <div class="form-group"><label class="form-label">AI predicted vs reality</label><input type="text" id="or-diff" placeholder="e.g. AI gave Brazil 74% — catastrophically wrong"></div>
+      <div class="form-group"><label class="form-label">Dramatic moment?</label><input type="text" id="or-moment" placeholder="e.g. 90th min equalizer, own goal"></div>
+      <button class="btn btn-red" style="width:100%" id="or-post-btn" onclick="generateOraclePost()">Generate accountability video</button>
+      <div id="or-post-out" class="output-box" style="display:none">
+        <div class="output-label" style="color:var(--red);">💀 ACCOUNTABILITY SCRIPT</div>
+        <button class="copy-btn" onclick="copyEl('or-post-text')">Copy</button>
+        <div class="output-text" id="or-post-text"></div>
+      </div>
+    </div>
+  </div>
+  <hr class="divider">
+  <div style="font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:12px;">ORACLE SCOREBOARD</div>
+  <div class="score-grid">
+    <div class="score-card" style="border:1px solid var(--border)"><div class="score-num" id="sc-total" style="color:var(--accent)">0</div><div class="score-label">Predictions</div></div>
+    <div class="score-card" style="border:1px solid var(--green)"><div class="score-num" id="sc-correct" style="color:var(--green)">0</div><div class="score-label">AI correct ✅</div></div>
+    <div class="score-card" style="border:1px solid var(--red)"><div class="score-num" id="sc-wrong" style="color:var(--red)">0</div><div class="score-label">AI WRONG 💀</div></div>
+  </div>
+  <div class="btn-row">
+    <button class="btn btn-secondary btn-sm" onclick="scoreRight()">✅ AI was right</button>
+    <button class="btn btn-red btn-sm" onclick="scoreWrong()">❌ AI was WRONG</button>
+    <button class="btn btn-secondary btn-sm" onclick="resetScore()">Reset</button>
+  </div>
+</div>
+
+<!-- ══ TAB 5: HUMAN STORY ══ -->
+<div id="panel-human" class="panel">
+  <div class="sec-title">HUMAN STORY</div>
+  <div class="sec-desc">Don't cover the match. Cover the people watching it. Stories beat scores.</div>
+  <div class="info-box"><strong>The insight:</strong> "Spain beat Germany 2-1" = 200 views. "Somewhere in England, 60 million people held their breath for 90 minutes and went to sleep heartbroken" = 2M views. Emotion = watch time.</div>
+  <div class="form-row">
+    <div class="form-group">
+      <label class="form-label">Story angle</label>
+      <select id="hs-angle">
+        <option value="woke_up_3am">Woke up at 3am to watch</option>
+        <option value="diaspora">Diaspora watching from abroad</option>
+        <option value="nepal_watching">Nepal watching (Nepali angle)</option>
+        <option value="fan_emotion">Fan emotion after result</option>
+        <option value="father_son">Father / son watching together</option>
+        <option value="country_never_qualified">Country that never qualified</option>
+        <option value="underdog_nation">Small nation's journey</option>
+        <option value="what_if_nepal">What if Nepal qualified?</option>
+        <option value="what_if_scenario">What if? (custom scenario)</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Match / team / moment</label>
+      <input type="text" id="hs-match" placeholder="e.g. Morocco reaching QF, or England vs France">
+    </div>
+  </div>
+  <div class="form-group"><label class="form-label">Extra context (optional)</label><input type="text" id="hs-context" placeholder="e.g. England haven't won since 1966"></div>
+  <div class="form-group">
+    <label class="form-label">Language</label>
+    <div class="chips">
+      <span class="chip active" data-group="lang" data-val="english">English</span>
+      <span class="chip" data-group="lang" data-val="nepali_english">Nepali-English mix</span>
+      <span class="chip" data-group="lang" data-val="nepali">Nepali (नेपाली)</span>
+    </div>
+  </div>
+  <div class="form-group">
+    <label class="form-label">Video format</label>
+    <div class="chips">
+      <span class="chip active" data-group="hsfmt" data-val="voiceover">🎤 Voiceover</span>
+      <span class="chip" data-group="hsfmt" data-val="text_screen">📱 Text on screen</span>
+      <span class="chip" data-group="hsfmt" data-val="face_cam">🎙 Face-cam</span>
+    </div>
+  </div>
+  <button class="btn btn-primary" style="width:100%" id="hs-btn" onclick="generateHumanStory()">Generate human story script</button>
+  <div id="hs-output" style="display:none">
+    <div class="output-box"><div class="output-label">❤️ OPENING (first 3 seconds)</div><button class="copy-btn" onclick="copyEl('hs-open')">Copy</button><div class="output-text" id="hs-open"></div></div>
+    <div class="output-box"><div class="output-label">📖 FULL STORY</div><button class="copy-btn" onclick="copyEl('hs-story')">Copy</button><div class="output-text" id="hs-story"></div></div>
+    <div class="output-box"><div class="output-label">💬 CAPTION + CTA</div><button class="copy-btn" onclick="copyEl('hs-caption')">Copy</button><div class="output-text" id="hs-caption"></div></div>
+    <div class="hashtag-box" id="hs-tags"></div>
+  </div>
+  <hr class="divider">
+  <div style="font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:10px;">STORY SPARKS — click to load</div>
+  <div class="spark-grid" id="storySparks"></div>
+</div>
+
+<!-- ══ TAB 6: CONTENT CALENDAR ══ -->
+<div id="panel-calendar" class="panel">
+  <div class="sec-title">CONTENT CALENDAR</div>
+  <div class="sec-desc">39-day match-synced plan · Jun 9 – Jul 19 · click any day to load into Script Generator</div>
+  <div class="chips" style="margin-bottom:14px;">
+    <span class="chip active" data-group="cal" data-filter="all">All</span>
+    <span class="chip" data-group="cal" data-filter="match">⚽ Match days</span>
+    <span class="chip" data-group="cal" data-filter="graphic">📊 Graphics</span>
+    <span class="chip" data-group="cal" data-filter="script">📝 Scripts</span>
+  </div>
+  <div class="cal-grid" id="calGrid"></div>
+</div>
+
+<!-- ══ TAB 7: HASHTAGS ══ -->
+<div id="panel-hashtags" class="panel">
+  <div class="sec-title">HASHTAG ENGINE</div>
+  <div class="sec-desc">Curated, copyright-safe sets for every situation</div>
+  <div class="form-group">
+    <label class="form-label">Situation</label>
+    <select id="ht-situation" onchange="renderHashtags()">
+      <option value="general">General WC content</option>
+      <option value="match_day">Match day hype</option>
+      <option value="upset">Major upset</option>
+      <option value="prediction">My predictions</option>
+      <option value="oracle">AI Oracle series</option>
+      <option value="human_story">Human story content</option>
+      <option value="nepal">Nepal / Nepali diaspora</option>
+      <option value="usa">USA / USMNT</option>
+      <option value="brazil">Brazil</option>
+      <option value="argentina">Argentina</option>
+      <option value="england">England</option>
+      <option value="host_city">Host city / Dallas</option>
+    </select>
+  </div>
+  <div class="form-group"><label class="form-label">Add team / match tag</label><input type="text" id="ht-team" placeholder="e.g. Mexico, Group A" oninput="renderHashtags()"></div>
+  <div class="hashtag-box" id="ht-box"></div>
+  <div style="margin-top:8px;display:flex;gap:10px;align-items:center;">
+    <span id="ht-count" style="font-size:12px;color:var(--muted);"></span>
+    <button class="btn btn-secondary btn-sm" onclick="copyHashtags()">Copy all</button>
+  </div>
+  <hr class="divider">
+  <div class="output-label" style="margin-bottom:8px;">STRATEGY NOTES</div>
+  <div id="ht-notes" style="font-size:13px;line-height:1.7;color:var(--muted);"></div>
+</div>
+
+<!-- ══ TAB 8: MATCH CARDS ══ -->
+<div id="panel-matchcards" class="panel">
+  <div class="sec-title">MATCH CARD GENERATOR</div>
+  <div class="sec-desc">Pick any match from the real WC2026 schedule — generate a ready-to-post 9:16 PNG card in one click</div>
+
+  <div style="display:grid;grid-template-columns:300px 1fr;gap:20px;align-items:start;">
+
+    <!-- MATCH LIST -->
+    <div>
+      <div class="form-group">
+        <input type="text" id="mc-search" placeholder="Search team or city..." oninput="mcFilter()" style="font-size:13px;">
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;" id="mc-stage-filter"></div>
+      <div id="mc-list" style="max-height:520px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--dim) transparent;"></div>
+    </div>
+
+    <!-- RIGHT: template + canvas -->
+    <div>
+      <!-- Selected match info strip -->
+      <div id="mc-selected-info" style="display:none;background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:12px;margin-bottom:14px;">
+        <div id="mc-si-teams" style="font-family:var(--font-d);font-size:22px;letter-spacing:1px;"></div>
+        <div id="mc-si-meta" style="font-size:12px;color:var(--muted);margin-top:4px;"></div>
+        <div id="mc-si-stage" style="display:inline-block;margin-top:6px;font-size:11px;font-weight:600;padding:2px 10px;border-radius:10px;"></div>
+      </div>
+
+      <!-- Template selector -->
+      <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--rl);padding:14px;margin-bottom:14px;">
+        <div class="form-label" style="margin-bottom:10px;">Template</div>
+        <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:6px;" id="mc-tmpl-grid"></div>
+
+        <!-- Extra inputs -->
+        <div id="mc-result-inputs" style="display:none;margin-top:12px;">
+          <div style="display:grid;grid-template-columns:1fr 40px 1fr;gap:8px;align-items:center;">
+            <input type="number" id="mc-score1" placeholder="0" min="0" max="20" oninput="mcRender()" style="text-align:center;font-size:20px;font-weight:700;">
+            <div style="text-align:center;color:var(--muted);font-size:18px;font-weight:700;">-</div>
+            <input type="number" id="mc-score2" placeholder="0" min="0" max="20" oninput="mcRender()" style="text-align:center;font-size:20px;font-weight:700;">
+          </div>
+        </div>
+        <div id="mc-stat-inputs" style="display:none;margin-top:12px;">
+          <input type="text" id="mc-stat-num" placeholder="Number e.g. 47" oninput="mcRender()" style="margin-bottom:8px;text-align:center;font-size:18px;font-weight:700;">
+          <input type="text" id="mc-stat-label" placeholder="e.g. Years since Brazil last won" oninput="mcRender()">
+        </div>
+        <div id="mc-quote-inputs" style="display:none;margin-top:12px;">
+          <textarea id="mc-quote-text" placeholder="Your hot take about this match..." style="min-height:70px;font-size:13px;" oninput="mcRender()"></textarea>
+        </div>
+
+        <div style="margin-top:12px;">
+          <div class="form-label" style="margin-bottom:6px;">Watermark</div>
+          <input type="text" id="mc-watermark" value="@WC2026Updates" oninput="mcRender()" style="font-size:13px;">
+        </div>
+
+        <div style="display:flex;gap:8px;margin-top:12px;">
+          <button class="btn btn-primary" id="mc-save-btn" onclick="mcSavePNG()" disabled style="flex:1;">📥 Save PNG</button>
+          <button class="btn btn-secondary" id="mc-copy-btn" onclick="mcCopyCanvas()" disabled style="flex:1;">Copy</button>
+        </div>
+      </div>
+
+      <!-- Canvas -->
+      <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--rl);padding:16px;">
+        <div class="form-label" style="margin-bottom:4px;">PREVIEW — 1080x1920 · 9:16</div>
+        <div style="max-width:300px;margin:0 auto;aspect-ratio:9/16;border-radius:var(--r);overflow:hidden;background:#000;">
+          <div id="mc-empty" style="width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;color:var(--muted);border:2px dashed var(--border);">
+            <div style="font-size:40px;opacity:.35;">⚽</div>
+            <div style="font-size:12px;text-align:center;max-width:160px;line-height:1.5;">Select a match to generate your card</div>
+          </div>
+          <canvas id="mc-canvas" width="1080" height="1920" style="width:100%;height:100%;display:none;"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ TAB 9: RESULT CARD ══ -->
+<div id="panel-result" class="panel">
+  <div class="sec-title">RESULT CARD</div>
+  <div class="sec-desc">Post-match graphic — paste result from anywhere, generate PNG in one click</div>
+
+  <div class="rc-wrap">
+    <!-- LEFT: inputs -->
+    <div>
+      <!-- Smart paste -->
+      <div class="rc-panel">
+        <div class="rc-panel-head">
+          <div class="rc-panel-title">SMART PASTE</div>
+          <div style="font-size:11px;color:var(--muted);margin-left:auto;">From Google, ChatGPT, anywhere</div>
+        </div>
+        <div class="rc-panel-body">
+          <textarea class="paste-area" id="rc-paste" placeholder="Paste result in any format:
+
+Brazil 3-1 Germany
+Vinicius 23, Rodrygo 45, Paqueta 78 / Muller 90+2
+
+Or: Brazil beat Germany 3-1. Vinicius Jr 23', Rodrygo 45'
+
+Or just: Brazil 3-1 Germany"></textarea>
+          <button class="parse-btn" onclick="rcParse()">Parse automatically</button>
+          <div id="rc-parse-ok" class="parse-ok"></div>
+          <div id="rc-parse-fail" class="parse-fail"></div>
+        </div>
+      </div>
+
+      <!-- Teams + Score -->
+      <div class="rc-panel">
+        <div class="rc-panel-head"><div class="rc-panel-title">MATCH DETAILS</div></div>
+        <div class="rc-panel-body">
+          <div class="form-label" style="margin-bottom:8px;">Teams</div>
+          <div class="form-row">
+            <div class="form-group"><label class="form-label">Team 1</label><input type="text" id="rc-t1" placeholder="Brazil" oninput="rcUpdate()"></div>
+            <div class="form-group"><label class="form-label">Team 2</label><input type="text" id="rc-t2" placeholder="Germany" oninput="rcUpdate()"></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label class="form-label">Code 1</label><input type="text" id="rc-c1" placeholder="BR" maxlength="3" oninput="rcUpdate()" style="text-align:center;font-weight:700;font-size:15px;text-transform:uppercase;"></div>
+            <div class="form-group"><label class="form-label">Code 2</label><input type="text" id="rc-c2" placeholder="DE" maxlength="3" oninput="rcUpdate()" style="text-align:center;font-weight:700;font-size:15px;text-transform:uppercase;"></div>
+          </div>
+          <div class="form-label" style="margin-bottom:6px;">Score</div>
+          <div class="score-row-rc">
+            <input type="number" id="rc-s1" class="score-inp" placeholder="0" min="0" max="20" oninput="rcUpdate()">
+            <div style="text-align:center;font-size:20px;font-weight:700;color:var(--muted);">—</div>
+            <input type="number" id="rc-s2" class="score-inp" placeholder="0" min="0" max="20" oninput="rcUpdate()">
+          </div>
+          <div class="form-label" style="margin-bottom:6px;">Scorers — Team 1</div>
+          <div class="scorers-list" id="rc-sc1"></div>
+          <button class="scorer-add-rc" onclick="rcAddScorer(1)">+ Add scorer</button>
+          <div style="height:12px;"></div>
+          <div class="form-label" style="margin-bottom:6px;">Scorers — Team 2</div>
+          <div class="scorers-list" id="rc-sc2"></div>
+          <button class="scorer-add-rc" onclick="rcAddScorer(2)">+ Add scorer</button>
+          <hr class="divider">
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Stage</label>
+              <select id="rc-stage" onchange="rcUpdate()">
+                <option value="group">Group Stage</option>
+                <option value="r32">Round of 32</option>
+                <option value="r16">Round of 16</option>
+                <option value="qf">Quarterfinal</option>
+                <option value="sf">Semifinal</option>
+                <option value="final">FINAL</option>
+              </select>
+            </div>
+            <div class="form-group"><label class="form-label">Date</label><input type="text" id="rc-date" placeholder="Jun 26" oninput="rcUpdate()"></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label class="form-label">City</label><input type="text" id="rc-city" placeholder="Dallas" oninput="rcUpdate()"></div>
+            <div class="form-group"><label class="form-label">Venue</label><input type="text" id="rc-venue" placeholder="AT&T Stadium" oninput="rcUpdate()"></div>
+          </div>
+          <div class="form-group"><label class="form-label">Key stat (optional)</label><input type="text" id="rc-stat" placeholder="68% possession  ·  14 shots" oninput="rcUpdate()"></div>
+          <div class="form-group"><label class="form-label">What this means</label><input type="text" id="rc-meaning" placeholder="Auto-generated or type your own" oninput="rcUpdate()"></div>
+          <hr class="divider">
+          <div class="hl-box">
+            <div class="hl-label">Auto headline</div>
+            <div class="hl-value" id="rc-hl-preview">Fill in teams and score</div>
+          </div>
+          <div class="form-group"><label class="form-label">Override headline</label><input type="text" id="rc-hl-override" placeholder="Leave blank for auto" oninput="rcUpdate()"></div>
+          <div class="form-group"><label class="form-label">Watermark</label><input type="text" id="rc-watermark" value="@WC2026Updates" oninput="rcUpdate()"></div>
+          <div class="btn-row" style="margin-top:14px;">
+            <button class="btn btn-primary" style="flex:2;" onclick="rcSavePNG()">📥 Save PNG</button>
+            <button class="btn btn-secondary" style="flex:1;" onclick="rcCopy()">Copy</button>
+            <button class="btn btn-secondary" style="flex:1;" onclick="rcReset()">Clear</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: preview -->
+    <div style="position:sticky;top:16px;">
+      <div class="platform-row">
+        <button class="ptab-rc active" onclick="rcSetPlatform('tiktok',this)">TikTok</button>
+        <button class="ptab-rc" onclick="rcSetPlatform('reels',this)">Reels</button>
+        <button class="ptab-rc" onclick="rcSetPlatform('shorts',this)">YT Shorts</button>
+        <button class="ptab-rc" onclick="rcSetPlatform('clean',this)">Clean</button>
+      </div>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:10px;">1080×1920 · 9:16 — safe zone enforced</div>
+      <div class="rc-preview-wrap" id="rcPreviewWrap">
+        <canvas id="rcCanvas" width="1080" height="1920"></canvas>
+        <div class="safe-zone-overlay" id="rcSafeOverlay"></div>
+        <div class="platform-ui-overlay" id="rcPlatformOverlay"></div>
+      </div>
+      <label class="safe-toggle">
+        <input type="checkbox" id="rcShowSafe" onchange="rcToggleSafe()">
+        Show safe zone guide
+      </label>
+    </div>
+  </div>
+</div>
+
+</div><!-- /main -->
 <div id="toast"></div>
 
 <script>
-// ══════════════════════════════════════════════════════════
-// MATCH DATA — WC 2026 Schedule (group stage key matches + all knockouts)
-// ══════════════════════════════════════════════════════════
-const MATCHES = [
-  // Group A
-  {id:1,t1:'Mexico',t2:'South Africa',f1:'🇲🇽',f2:'🇿🇦',date:'Jun 11',time:'3:00 PM ET',venue:'Estadio Azteca',city:'Mexico City',stage:'Group A',group:'A',c1:'#006847',c2:'#007A4D'},
-  {id:2,t1:'South Korea',t2:'Czechia',f1:'🇰🇷',f2:'🇨🇿',date:'Jun 11',time:'10:00 PM ET',venue:'Estadio Akron',city:'Guadalajara',stage:'Group A',group:'A',c1:'#C60C30',c2:'#D7141A'},
-  {id:3,t1:'Mexico',t2:'Czechia',f1:'🇲🇽',f2:'🇨🇿',date:'Jun 16',time:'TBD',venue:'SoFi Stadium',city:'Los Angeles',stage:'Group A',group:'A',c1:'#006847',c2:'#D7141A'},
-  {id:4,t1:'South Korea',t2:'South Africa',f1:'🇰🇷',f2:'🇿🇦',date:'Jun 16',time:'TBD',venue:'AT&T Stadium',city:'Dallas',stage:'Group A',group:'A',c1:'#C60C30',c2:'#007A4D'},
-  // Group B
-  {id:5,t1:'Canada',t2:'Bosnia-Herzegovina',f1:'🇨🇦',f2:'🇧🇦',date:'Jun 12',time:'3:00 PM ET',venue:'BMO Field',city:'Toronto',stage:'Group B',group:'B',c1:'#FF0000',c2:'#002395'},
-  {id:6,t1:'USA',t2:'Paraguay',f1:'🇺🇸',f2:'🇵🇾',date:'Jun 12',time:'9:00 PM ET',venue:'SoFi Stadium',city:'Los Angeles',stage:'Group B',group:'B',c1:'#002868',c2:'#D52B1E'},
-  {id:7,t1:'USA',t2:'Canada',f1:'🇺🇸',f2:'🇨🇦',date:'Jun 17',time:'TBD',venue:'Levi\'s Stadium',city:'San Francisco',stage:'Group B',group:'B',c1:'#002868',c2:'#FF0000'},
-  // Group C
-  {id:8,t1:'Brazil',t2:'Croatia',f1:'🇧🇷',f2:'🇭🇷',date:'Jun 13',time:'TBD',venue:'Rose Bowl',city:'Los Angeles',stage:'Group C',group:'C',c1:'#009C3B',c2:'#FF0000'},
-  {id:9,t1:'Japan',t2:'Cameroon',f1:'🇯🇵',f2:'🇨🇲',date:'Jun 13',time:'TBD',venue:'AT&T Stadium',city:'Dallas',stage:'Group C',group:'C',c1:'#BC002D',c2:'#007A5E'},
-  // Group D
-  {id:10,t1:'England',t2:'Serbia',f1:'🏴󠁧󠁢󠁥󠁮󠁧󠁿',f2:'🇷🇸',date:'Jun 13',time:'TBD',venue:'Mercedes-Benz Stadium',city:'Atlanta',stage:'Group D',group:'D',c1:'#003087',c2:'#C6363C'},
-  {id:11,t1:'Netherlands',t2:'Senegal',f1:'🇳🇱',f2:'🇸🇳',date:'Jun 14',time:'TBD',venue:'Lincoln Financial Field',city:'Philadelphia',stage:'Group D',group:'D',c1:'#FF4B00',c2:'#00853F'},
-  // Group E
-  {id:12,t1:'France',t2:'Argentina',f1:'🇫🇷',f2:'🇦🇷',date:'Jun 14',time:'TBD',venue:'MetLife Stadium',city:'New York/NJ',stage:'Group E',group:'E',c1:'#002395',c2:'#74ACDF'},
-  {id:13,t1:'Poland',t2:'Saudi Arabia',f1:'🇵🇱',f2:'🇸🇦',date:'Jun 14',time:'TBD',venue:'Gillette Stadium',city:'Boston',stage:'Group E',group:'E',c1:'#DC143C',c2:'#006C35'},
-  // Group F
-  {id:14,t1:'Spain',t2:'Morocco',f1:'🇪🇸',f2:'🇲🇦',date:'Jun 15',time:'TBD',venue:'Hard Rock Stadium',city:'Miami',stage:'Group F',group:'F',c1:'#AA151B',c2:'#C1272D'},
-  {id:15,t1:'Portugal',t2:'Algeria',f1:'🇵🇹',f2:'🇩🇿',date:'Jun 15',time:'TBD',venue:'Arrowhead Stadium',city:'Kansas City',stage:'Group F',group:'F',c1:'#006600',c2:'#006233'},
-  // Group G
-  {id:16,t1:'Germany',t2:'Uruguay',f1:'🇩🇪',f2:'🇺🇾',date:'Jun 15',time:'TBD',venue:'AT&T Stadium',city:'Dallas',stage:'Group G',group:'G',c1:'#000000',c2:'#75AADB'},
-  {id:17,t1:'Colombia',t2:'Nigeria',f1:'🇨🇴',f2:'🇳🇬',date:'Jun 16',time:'TBD',venue:'SoFi Stadium',city:'Los Angeles',stage:'Group G',group:'G',c1:'#FCD116',c2:'#008751'},
-  // Group H
-  {id:18,t1:'Belgium',t2:'New Zealand',f1:'🇧🇪',f2:'🇳🇿',date:'Jun 16',time:'TBD',venue:'BC Place',city:'Vancouver',stage:'Group H',group:'H',c1:'#EF3340',c2:'#00247D'},
-  {id:19,t1:'Austria',t2:'Egypt',f1:'🇦🇹',f2:'🇪🇬',date:'Jun 16',time:'TBD',venue:'Estadio BBVA',city:'Monterrey',stage:'Group H',group:'H',c1:'#ED2939',c2:'#CE1126'},
-  // Group I
-  {id:20,t1:'Italy',t2:'Ecuador',f1:'🇮🇹',f2:'🇪🇨',date:'Jun 17',time:'TBD',venue:'Lincoln Financial Field',city:'Philadelphia',stage:'Group I',group:'I',c1:'#009246',c2:'#FFD100'},
-  {id:21,t1:'Chile',t2:'Ivory Coast',f1:'🇨🇱',f2:'🇨🇮',date:'Jun 17',time:'TBD',venue:'MetLife Stadium',city:'New York/NJ',stage:'Group I',group:'I',c1:'#D52B1E',c2:'#F77F00'},
-  // Group J
-  {id:22,t1:'Netherlands',t2:'Australia',f1:'🇳🇱',f2:'🇦🇺',date:'Jun 18',time:'TBD',venue:'Hard Rock Stadium',city:'Miami',stage:'Group J',group:'J',c1:'#FF4B00',c2:'#00843D'},
-  {id:23,t1:'Iran',t2:'DR Congo',f1:'🇮🇷',f2:'🇨🇩',date:'Jun 18',time:'TBD',venue:'Rose Bowl',city:'Los Angeles',stage:'Group J',group:'J',c1:'#239F40',c2:'#007FFF'},
-  // Group K
-  {id:24,t1:'Turkey',t2:'Cuba',f1:'🇹🇷',f2:'🇨🇺',date:'Jun 18',time:'TBD',venue:'Estadio Akron',city:'Guadalajara',stage:'Group K',group:'K',c1:'#E30A17',c2:'#CC0001'},
-  {id:25,t1:'Ukraine',t2:'Panama',f1:'🇺🇦',f2:'🇵🇦',date:'Jun 19',time:'TBD',venue:'Estadio Azteca',city:'Mexico City',stage:'Group K',group:'K',c1:'#005BBB',c2:'#DA121A'},
-  // Group L
-  {id:26,t1:'Argentina',t2:'South Korea',f1:'🇦🇷',f2:'🇰🇷',date:'Jun 19',time:'TBD',venue:'SoFi Stadium',city:'Los Angeles',stage:'Group L',group:'L',c1:'#74ACDF',c2:'#C60C30'},
-  {id:27,t1:'Qatar',t2:'Romania',f1:'🇶🇦',f2:'🇷🇴',date:'Jun 20',time:'TBD',venue:'BMW Stadium',city:'Atlanta',stage:'Group L',group:'L',c1:'#8D1B3D',c2:'#002B7F'},
+// ═══════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════
+const API = "https://api.anthropic.com/v1/messages";
+const MODEL = "claude-sonnet-4-20250514";
+let cardAccent = "#c9a84c";
+let chipState = { tone:"hype", lang:"english", hsfmt:"voiceover" };
+let oracleScore = {total:0,correct:0,wrong:0};
+let calFilter = "all";
 
-  // KNOCKOUTS — placeholders with key confirmed matchups
-  {id:50,t1:'QF Winner 1',t2:'QF Winner 2',f1:'🏆',f2:'🏆',date:'Jul 5',time:'TBD',venue:'TBD',city:'TBD',stage:'Round of 32',group:'R32',c1:'#c9a84c',c2:'#888'},
-  {id:51,t1:'Group A Winner',t2:'Best 3rd',f1:'⚽',f2:'⚽',date:'Jun 29',time:'TBD',venue:'TBD',city:'TBD',stage:'Round of 32',group:'R32',c1:'#c9a84c',c2:'#888'},
-
-  // SEMIFINALS
-  {id:90,t1:'SF1 Team A',t2:'SF1 Team B',f1:'🔥',f2:'🔥',date:'Jul 14',time:'TBD',venue:'MetLife Stadium',city:'New York/NJ',stage:'Semifinal',group:'SF',c1:'#c9a84c',c2:'#4488ff'},
-  {id:91,t1:'SF2 Team A',t2:'SF2 Team B',f1:'🔥',f2:'🔥',date:'Jul 15',time:'TBD',venue:'SoFi Stadium',city:'Los Angeles',stage:'Semifinal',group:'SF',c1:'#4488ff',c2:'#c9a84c'},
-
-  // FINAL
-  {id:99,t1:'Finalist 1',t2:'Finalist 2',f1:'🏆',f2:'🏆',date:'Jul 19',time:'3:00 PM ET',venue:'MetLife Stadium',city:'New York/NJ',stage:'FINAL',group:'FINAL',c1:'#c9a84c',c2:'#c9a84c'},
-];
-
-// Stage colors
-const STAGE_COLORS = {
-  'FINAL': {bg:'rgba(201,168,76,.2)',color:'#c9a84c'},
-  'Semifinal': {bg:'rgba(218,54,51,.2)',color:'#f47068'},
-  'Quarterfinal': {bg:'rgba(68,136,255,.15)',color:'#79b8ff'},
-  'Round of 16': {bg:'rgba(130,255,130,.1)',color:'#7ee787'},
-  'Round of 32': {bg:'rgba(255,255,255,.08)',color:'#8b949e'},
-};
-function stageColor(s) {
-  if (s === 'FINAL') return STAGE_COLORS['FINAL'];
-  if (s === 'Semifinal') return STAGE_COLORS['Semifinal'];
-  if (s.includes('Quart')) return STAGE_COLORS['Quarterfinal'];
-  if (s.includes('16')) return STAGE_COLORS['Round of 16'];
-  if (s.includes('32')) return STAGE_COLORS['Round of 32'];
-  return {bg:'rgba(255,255,255,.06)',color:'#8b949e'};
-}
-
-// State
-let selectedMatch = null;
-let selectedTemplate = 'classic';
-let stageFilter = 'all';
-
-// ══════════════════════════════════════════════
-// INIT
-// ══════════════════════════════════════════════
+// ═══════════════════════════════════════════════
+// INIT — runs after page fully loaded
+// ═══════════════════════════════════════════════
 window.onload = function() {
-  buildStageFilter();
-  renderMatchList();
+  // Chip click handler (single delegated listener on body)
+  document.body.addEventListener('click', function(e) {
+    const chip = e.target.closest('.chip');
+    if (!chip) return;
+    const group = chip.dataset.group;
+    if (!group) return;
+
+    if (group === 'tone' || group === 'lang' || group === 'hsfmt') {
+      document.querySelectorAll('.chip[data-group="'+group+'"]').forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+      if (group === 'tone') chipState.tone = chip.dataset.val;
+      if (group === 'lang') chipState.lang = chip.dataset.val;
+      if (group === 'hsfmt') chipState.hsfmt = chip.dataset.val;
+    }
+    if (group === 'accent') {
+      document.querySelectorAll('.chip[data-group="accent"]').forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+      cardAccent = chip.dataset.color;
+      renderCard();
+    }
+    if (group === 'cal') {
+      document.querySelectorAll('.chip[data-group="cal"]').forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+      calFilter = chip.dataset.filter;
+      buildCalendar();
+    }
+  });
+
+  // Countdown clock
+  setInterval(updateClock, 1000);
+  updateClock();
+
+  // Default countdown date
+  const dtEl = document.getElementById('sc-cd-date');
+  if (dtEl) dtEl.value = '2026-06-11T15:00';
+
+  // Init renders
+  renderCard();
+  renderPredCard();
+  renderHashtags();
+  buildStorySparks();
+
+  // Try restore oracle score
+  try {
+    const s = localStorage.getItem('oracleScore');
+    if (s) oracleScore = JSON.parse(s);
+  } catch(e) {}
+  updateOracleDisplay();
 };
 
-function buildStageFilter() {
-  const stages = ['all','Group','Round of 32','Semifinal','Final'];
-  const wrap = document.getElementById('stageFilter');
-  stages.forEach(s => {
-    const b = document.createElement('button');
-    b.className = 'sf-btn' + (s==='all'?' active':'');
-    b.textContent = s === 'all' ? 'All' : s;
-    b.onclick = () => {
-      stageFilter = s;
-      document.querySelectorAll('.sf-btn').forEach(x => x.classList.remove('active'));
-      b.classList.add('active');
-      renderMatchList();
-    };
-    wrap.appendChild(b);
+// ═══════════════════════════════════════════════
+// TAB SWITCHING
+// ═══════════════════════════════════════════════
+function switchTab(id, btn) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('panel-' + id).classList.add('active');
+  if (btn) btn.classList.add('active');
+  if (id === 'statcard') renderCard();
+  if (id === 'prediction') renderPredCard();
+  if (id === 'calendar') buildCalendar();
+  if (id === 'hashtags') renderHashtags();
+  if (id === 'matchcards') mcInit();
+  if (id === 'result') rcInit();
+}
+
+// ═══════════════════════════════════════════════
+// UTILS
+// ═══════════════════════════════════════════════
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+function copyEl(id) {
+  const text = document.getElementById(id).textContent;
+  navigator.clipboard.writeText(text).then(() => showToast('Copied!'));
+}
+
+function copyHashtags() {
+  navigator.clipboard.writeText(document.getElementById('ht-box').textContent).then(() => showToast('Hashtags copied!'));
+}
+
+function setLoading(btnId, loading, defaultLabel) {
+  const btn = document.getElementById(btnId);
+  if (!btn) return;
+  btn.disabled = loading;
+  btn.innerHTML = loading ? '<span class="spinner"></span> Generating...' : defaultLabel;
+}
+
+async function callClaude(prompt, maxTokens) {
+  const res = await fetch(API, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ model: MODEL, max_tokens: maxTokens, messages: [{ role: 'user', content: prompt }] })
   });
+  const data = await res.json();
+  const raw = data.content?.[0]?.text || '';
+  return JSON.parse(raw.replace(/```json|```/g, '').trim());
 }
 
-function filterMatches() { renderMatchList(); }
-
-function renderMatchList() {
-  const q = document.getElementById('searchInput').value.toLowerCase();
-  const list = document.getElementById('matchList');
-  list.innerHTML = '';
-  const filtered = MATCHES.filter(m => {
-    const matchStage = stageFilter === 'all' ? true :
-      stageFilter === 'Group' ? m.group && m.group.length === 1 :
-      stageFilter === 'Round of 32' ? m.stage === 'Round of 32' :
-      stageFilter === 'Semifinal' ? m.stage === 'Semifinal' :
-      stageFilter === 'Final' ? m.stage === 'FINAL' : true;
-    const matchSearch = !q || m.t1.toLowerCase().includes(q) || m.t2.toLowerCase().includes(q) || m.city.toLowerCase().includes(q);
-    return matchStage && matchSearch;
-  });
-
-  if (filtered.length === 0) {
-    list.innerHTML = '<div style="padding:20px;text-align:center;color:var(--muted);font-size:13px;">No matches found</div>';
-    return;
-  }
-
-  filtered.forEach(m => {
-    const div = document.createElement('div');
-    div.className = 'match-item' + (selectedMatch && selectedMatch.id === m.id ? ' active' : '');
-    const sc = stageColor(m.stage);
-    const stageClass = m.stage==='FINAL'?' final':m.stage==='Semifinal'?' sf':m.stage.includes('Quart')?' qf':'';
-    div.innerHTML = `
-      <div class="mi-flags">
-        <span>${m.f1}</span>
-        <span class="mi-divider">v</span>
-        <span>${m.f2}</span>
-      </div>
-      <div class="mi-info">
-        <div class="mi-teams">${m.t1} vs ${m.t2}</div>
-        <div class="mi-meta">${m.date} · ${m.city}</div>
-      </div>
-      <div class="mi-stage${stageClass}">${m.stage}</div>
-    `;
-    div.onclick = () => selectMatch(m, div);
-    list.appendChild(div);
-  });
+function updateClock() {
+  const kickoff = new Date('2026-06-11T15:00:00-05:00');
+  const diff = kickoff - new Date();
+  const el = document.getElementById('headerTimer');
+  if (!el) return;
+  if (diff <= 0) { el.textContent = '⚽ LIVE'; return; }
+  const d = Math.floor(diff/86400000);
+  const h = Math.floor((diff%86400000)/3600000);
+  const m = Math.floor((diff%3600000)/60000);
+  const s = Math.floor((diff%60000)/1000);
+  el.textContent = d+'d '+String(h).padStart(2,'0')+'h '+String(m).padStart(2,'0')+'m '+String(s).padStart(2,'0')+'s';
 }
 
-function selectMatch(match, el) {
-  selectedMatch = match;
-  document.querySelectorAll('.match-item').forEach(x => x.classList.remove('active'));
-  if (el) el.classList.add('active');
+// ═══════════════════════════════════════════════
+// SCRIPT GENERATOR
+// ═══════════════════════════════════════════════
+async function generateScript() {
+  const format = document.getElementById('sg-format').value;
+  const style = document.getElementById('sg-style').value;
+  const topic = document.getElementById('sg-topic').value.trim();
+  const angle = document.getElementById('sg-angle').value.trim();
+  if (!topic) { showToast('Enter a topic first'); return; }
 
-  // Update info strip
-  const info = document.getElementById('selectedInfo');
-  info.classList.add('visible');
-  document.getElementById('siTeams').textContent = `${match.f1} ${match.t1}  vs  ${match.f2} ${match.t2}`;
-  document.getElementById('siMeta').textContent = `${match.date} · ${match.time} · ${match.venue}, ${match.city}`;
-  const sc = stageColor(match.stage);
-  const badge = document.getElementById('siStage');
-  badge.textContent = match.stage;
-  badge.style.background = sc.bg;
-  badge.style.color = sc.color;
+  setLoading('sg-btn', true, 'Generate script');
+  const fmtMap = {
+    hot_take:'hot take / reaction',
+    stat_reveal:'stat reveal with a mind-blowing number',
+    prediction:'bold AI prediction with confidence percentage',
+    prediction_fail:'PREDICTION FAIL accountability video — AI was completely wrong, be self-deprecating and funny',
+    dark_horse:'dark horse team spotlight',
+    history:'World Cup history moment nobody talks about',
+    unknown_fact:'shocking fact most people do not know — make it mind-blowing',
+    fan_psychology:'fan psychology video — what fans FEEL, not the scoreline',
+    what_if:'hypothetical "What if?" AI scenario — creative and imaginative',
+    debate:'debate bait — take a controversial stance, invite argument',
+    daily_wrap:'daily match wrap',
+    human_story:'human story — NOT about the match, about the PEOPLE watching. Someone woke up at 3am for this. Tell THEIR story.',
+    nepali_angle:'Nepal or Nepali diaspora angle — how Nepali people experience this World Cup moment',
+    countdown:'match countdown hype'
+  };
+  const styleMap = {
+    face_cam:'face-cam commentary (person speaking to camera)',
+    voiceover:'voiceover narration for faceless video',
+    text_only:'text-on-screen only, no voiceover'
+  };
 
-  // Enable buttons
-  document.getElementById('saveBtn').disabled = false;
-  document.getElementById('copyBtn').disabled = false;
+  const prompt = `You are a viral TikTok sports content strategist for a World Cup 2026 page.
 
-  // Show canvas, hide empty state
-  document.getElementById('emptyState').style.display = 'none';
-  document.getElementById('mainCanvas').style.display = 'block';
+FORMAT: ${fmtMap[format]}
+STYLE: ${styleMap[style]}
+TOPIC: ${topic}
+${angle ? 'ANGLE: '+angle : ''}
+TONE: ${chipState.tone}
+CONTEXT: FIFA World Cup 2026, June 11 – July 19, hosted in USA/Canada/Mexico, 48 teams, 104 matches.
 
-  renderCard();
+Respond ONLY in this exact JSON (no markdown, no extra text):
+{"hook":"Opening 1-2 sentences max 15 words. Must stop scroll in 1.5 seconds. Bold statement or shocking reveal.","body":"Full script body 5-15 sentences. For face-cam add [PAUSE] and [EMPHASIS]. For text-only separate lines with |||","caption":"TikTok caption 2-3 sentences. End with debate-starter question.","hashtags":"10-12 hashtags. Mix #WorldCup2026 #WC2026 #soccer #football with specific tags. No spaces around #."}`;
+
+  try {
+    const p = await callClaude(prompt, 1000);
+    document.getElementById('sg-hook').textContent = p.hook;
+    document.getElementById('sg-body').textContent = p.body;
+    document.getElementById('sg-caption').textContent = p.caption;
+    document.getElementById('sg-tags').textContent = p.hashtags;
+    document.getElementById('sg-output').style.display = 'block';
+  } catch(e) { showToast('API error — check connection'); console.error(e); }
+  setLoading('sg-btn', false, 'Generate script');
 }
 
-function selectTemplate(el) {
-  document.querySelectorAll('.tmpl-btn').forEach(x => x.classList.remove('active'));
-  el.classList.add('active');
-  selectedTemplate = el.dataset.tmpl;
-
-  // Show/hide extra inputs
-  const extra = document.getElementById('extraInputs');
-  document.getElementById('resultInputs').style.display = 'none';
-  document.getElementById('statInputs').style.display = 'none';
-  document.getElementById('quoteInputs').style.display = 'none';
-
-  if (selectedTemplate === 'result') {
-    extra.style.display = 'block';
-    document.getElementById('resultInputs').style.display = 'block';
-  } else if (selectedTemplate === 'stat') {
-    extra.style.display = 'block';
-    document.getElementById('statInputs').style.display = 'block';
-  } else if (selectedTemplate === 'quote') {
-    extra.style.display = 'block';
-    document.getElementById('quoteInputs').style.display = 'block';
-  } else {
-    extra.style.display = 'none';
-  }
-
-  if (selectedMatch) renderCard();
-}
-
-// ══════════════════════════════════════════════
-// CANVAS — DIMENSIONS
-// ══════════════════════════════════════════════
+// ═══════════════════════════════════════════════
+// CANVAS HELPERS
+// ═══════════════════════════════════════════════
 const CW = 1080, CH = 1920;
 
-function renderCard() {
-  if (!selectedMatch) return;
-  const canvas = document.getElementById('mainCanvas');
-  const ctx = canvas.getContext('2d');
-  ctx.clearRect(0, 0, CW, CH);
-
-  const m = selectedMatch;
-  const tmpl = selectedTemplate;
-
-  if (tmpl === 'classic') drawClassic(ctx, m);
-  else if (tmpl === 'prediction') drawOracle(ctx, m);
-  else if (tmpl === 'hype') drawHype(ctx, m);
-  else if (tmpl === 'result') drawResult(ctx, m);
-  else if (tmpl === 'stat') drawStat(ctx, m);
-  else if (tmpl === 'quote') drawQuote(ctx, m);
-}
-
-// ══════════════════════════════════════════════
-// SHARED DRAW UTILITIES
-// ══════════════════════════════════════════════
-function hex2rgba(hex, a) {
-  const r = parseInt(hex.slice(1,3),16), g = parseInt(hex.slice(3,5),16), b = parseInt(hex.slice(5,7),16);
-  return `rgba(${r},${g},${b},${a})`;
-}
-
-function drawPitchBG(ctx, c1='#0d1117', c2='#161b22') {
-  // Main gradient
-  const grad = ctx.createLinearGradient(0, 0, 0, CH);
-  grad.addColorStop(0, c1);
-  grad.addColorStop(1, c2);
-  ctx.fillStyle = grad;
+function drawBase(ctx) {
+  ctx.fillStyle = '#0a0a0a';
   ctx.fillRect(0, 0, CW, CH);
-
-  // Subtle pitch lines
-  ctx.strokeStyle = 'rgba(255,255,255,0.03)';
+  ctx.strokeStyle = 'rgba(255,255,255,0.025)';
   ctx.lineWidth = 1;
-  for (let y = 0; y < CH; y += 100) {
-    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(CW, y); ctx.stroke();
-  }
-  // Vertical
-  for (let x = 0; x < CW; x += 108) {
-    ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, CH); ctx.stroke();
-  }
-}
-
-function drawTeamSplit(ctx, c1, c2, alpha=0.12) {
-  // Left team color wash
-  const lg = ctx.createLinearGradient(0, 0, CW/2, 0);
-  lg.addColorStop(0, hex2rgba(c1, alpha));
-  lg.addColorStop(1, 'rgba(0,0,0,0)');
-  ctx.fillStyle = lg;
-  ctx.fillRect(0, 0, CW, CH);
-  // Right team color wash
-  const rg = ctx.createLinearGradient(CW, 0, CW/2, 0);
-  rg.addColorStop(0, hex2rgba(c2, alpha));
-  rg.addColorStop(1, 'rgba(0,0,0,0)');
-  ctx.fillStyle = rg;
-  ctx.fillRect(0, 0, CW, CH);
-}
-
-function drawGoldTopBar(ctx) {
-  const g = ctx.createLinearGradient(0, 0, CW, 0);
-  g.addColorStop(0, '#8a6a1a');
-  g.addColorStop(0.5, '#e8c96a');
-  g.addColorStop(1, '#8a6a1a');
-  ctx.fillStyle = g;
-  ctx.fillRect(0, 0, CW, 10);
-  ctx.fillRect(0, CH-10, CW, 10);
-}
-
-function drawWC2026Badge(ctx, y=100) {
-  ctx.font = '700 28px Inter,sans-serif';
-  ctx.fillStyle = 'rgba(201,168,76,0.7)';
-  ctx.textAlign = 'center';
-  ctx.letterSpacing = '4px';
-  ctx.fillText('FIFA WORLD CUP 2026™', CW/2, y);
-  ctx.letterSpacing = '0px';
-}
-
-function drawFlag(ctx, emoji, x, y, size=120) {
-  ctx.font = `${size}px serif`;
-  ctx.textAlign = 'center';
-  ctx.fillText(emoji, x, y);
-}
-
-function drawTeamName(ctx, name, x, y, maxW=440) {
-  const len = name.length;
-  const fs = len > 12 ? 72 : len > 9 ? 88 : len > 6 ? 100 : 116;
-  ctx.font = `700 ${fs}px Bebas Neue,sans-serif`;
-  ctx.fillStyle = '#ffffff';
-  ctx.textAlign = 'center';
-  // Shadow
-  ctx.shadowColor = 'rgba(0,0,0,0.5)';
-  ctx.shadowBlur = 10;
-  ctx.fillText(name.toUpperCase(), x, y);
-  ctx.shadowBlur = 0;
+  for (let y = 0; y < CH; y += 80) { ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(CW,y); ctx.stroke(); }
+  ctx.fillStyle = cardAccent;
+  ctx.fillRect(0, 0, CW, 12);
+  ctx.fillRect(0, CH-12, CW, 12);
 }
 
 function drawWatermark(ctx, text) {
-  ctx.font = '500 32px Inter,sans-serif';
-  ctx.fillStyle = 'rgba(255,255,255,0.2)';
+  ctx.font = '400 36px Inter,sans-serif';
+  ctx.fillStyle = 'rgba(255,255,255,0.25)';
   ctx.textAlign = 'left';
-  ctx.fillText(text || '', 60, CH - 52);
+  ctx.fillText(text || '', 60, CH-54);
 }
 
 function wrapText(ctx, text, x, y, maxW, lineH) {
@@ -595,8 +865,9 @@ function wrapText(ctx, text, x, y, maxW, lineH) {
     const test = line + words[i] + ' ';
     if (ctx.measureText(test).width > maxW && i > 0) {
       ctx.fillText(line.trim(), x, cy);
-      line = words[i] + ' '; cy += lineH;
-    } else line = test;
+      line = words[i] + ' ';
+      cy += lineH;
+    } else { line = test; }
   }
   ctx.fillText(line.trim(), x, cy);
 }
@@ -609,537 +880,1276 @@ function roundRect(ctx, x, y, w, h, r) {
   ctx.lineTo(x,y+r); ctx.quadraticCurveTo(x,y,x+r,y); ctx.closePath();
 }
 
-function drawStagePill(ctx, stage, cx, y) {
-  const sc = stageColor(stage);
-  const text = stage.toUpperCase();
-  ctx.font = '700 26px Inter,sans-serif';
-  const tw = ctx.measureText(text).width;
-  const pw = tw + 48, ph = 44;
-  const px = cx - pw/2;
-  ctx.fillStyle = sc.bg;
-  roundRect(ctx, px, y-ph+8, pw, ph, ph/2); ctx.fill();
-  ctx.strokeStyle = sc.color; ctx.lineWidth = 1.5;
-  roundRect(ctx, px, y-ph+8, pw, ph, ph/2); ctx.stroke();
-  ctx.fillStyle = sc.color;
-  ctx.textAlign = 'center';
-  ctx.fillText(text, cx, y);
-}
-
-// ══════════════════════════════════════════════
-// TEMPLATE 1 — CLASSIC MATCH CARD
-// ══════════════════════════════════════════════
-function drawClassic(ctx, m) {
-  drawPitchBG(ctx, '#090e14', '#111822');
-  drawTeamSplit(ctx, m.c1, m.c2, 0.18);
-  drawGoldTopBar(ctx);
-  drawWC2026Badge(ctx, 120);
-
-  // Stage pill
-  drawStagePill(ctx, m.stage, CW/2, 194);
-
-  // Dividing line center
-  ctx.strokeStyle = 'rgba(255,255,255,0.06)';
-  ctx.lineWidth = 2;
-  ctx.setLineDash([8, 8]);
-  ctx.beginPath(); ctx.moveTo(CW/2, 260); ctx.lineTo(CW/2, CH-180); ctx.stroke();
-  ctx.setLineDash([]);
-
-  // Team 1 — left
-  drawFlag(ctx, m.f1, CW/4, 560, 160);
-  drawTeamName(ctx, m.t1, CW/4, 720);
-
-  // VS
-  ctx.font = '700 180px Bebas Neue,sans-serif';
-  ctx.fillStyle = '#c9a84c';
-  ctx.textAlign = 'center';
-  ctx.shadowColor = 'rgba(201,168,76,0.4)';
-  ctx.shadowBlur = 30;
-  ctx.fillText('VS', CW/2, 960);
-  ctx.shadowBlur = 0;
-
-  // Team 2 — right
-  drawFlag(ctx, m.f2, 3*CW/4, 560, 160);
-  drawTeamName(ctx, m.t2, 3*CW/4, 720);
-
-  // Separator line
-  const sg = ctx.createLinearGradient(60, 0, CW-60, 0);
-  sg.addColorStop(0, 'transparent');
-  sg.addColorStop(0.2, 'rgba(201,168,76,0.4)');
-  sg.addColorStop(0.8, 'rgba(201,168,76,0.4)');
-  sg.addColorStop(1, 'transparent');
-  ctx.strokeStyle = sg; ctx.lineWidth = 1.5;
-  ctx.beginPath(); ctx.moveTo(60, 1060); ctx.lineTo(CW-60, 1060); ctx.stroke();
-
-  // Match details block
-  const detailY = 1120;
-  ctx.font = '700 44px Inter,sans-serif';
-  ctx.fillStyle = '#c9a84c';
-  ctx.textAlign = 'center';
-  ctx.fillText(m.date + (m.time !== 'TBD' ? '  ·  ' + m.time : ''), CW/2, detailY);
-
-  ctx.font = '400 36px Inter,sans-serif';
-  ctx.fillStyle = 'rgba(255,255,255,0.55)';
-  ctx.fillText(m.venue, CW/2, detailY + 60);
-
-  ctx.font = '400 32px Inter,sans-serif';
-  ctx.fillStyle = 'rgba(255,255,255,0.35)';
-  ctx.fillText(m.city, CW/2, detailY + 108);
-
-  // Bottom hosts line
-  ctx.font = '500 30px Inter,sans-serif';
-  ctx.fillStyle = 'rgba(201,168,76,0.45)';
-  ctx.fillText('🇺🇸 USA  ·  🇨🇦 Canada  ·  🇲🇽 Mexico', CW/2, CH - 160);
-
-  drawWatermark(ctx, document.getElementById('watermark').value);
-}
-
-// ══════════════════════════════════════════════
-// TEMPLATE 2 — ORACLE PREDICTION
-// ══════════════════════════════════════════════
-function drawOracle(ctx, m) {
-  // Deep space BG
-  drawPitchBG(ctx, '#050810', '#0a0c18');
-
-  // Star field
-  ctx.fillStyle = 'rgba(255,255,255,0.6)';
-  const stars = [[80,200],[200,150],[950,300],[800,180],[600,250],[300,400],[900,600],[150,800],[700,900],[400,1100],[1000,1200],[50,1400],[850,1500],[500,1700],[200,1800]];
-  stars.forEach(([x,y]) => { ctx.beginPath(); ctx.arc(x,y,Math.random()*2+1,0,Math.PI*2); ctx.fill(); });
-
-  drawTeamSplit(ctx, m.c1, m.c2, 0.15);
-  drawGoldTopBar(ctx);
-
-  // Oracle header
-  ctx.font = '700 32px Inter,sans-serif';
-  ctx.fillStyle = 'rgba(201,168,76,0.8)';
-  ctx.textAlign = 'center';
-  ctx.fillText('🔮 THE AI ORACLE PREDICTS', CW/2, 120);
-
-  ctx.font = '700 22px Inter,sans-serif';
-  ctx.fillStyle = 'rgba(255,255,255,0.3)';
-  ctx.fillText('FIFA WORLD CUP 2026™', CW/2, 160);
-
-  // Stage
-  drawStagePill(ctx, m.stage, CW/2, 218);
-
-  // Glowing orb circle
-  const orbX = CW/2, orbY = 680;
-  const orbR = 280;
-  const orbGrad = ctx.createRadialGradient(orbX, orbY, 0, orbX, orbY, orbR);
-  orbGrad.addColorStop(0, 'rgba(201,168,76,0.25)');
-  orbGrad.addColorStop(0.5, 'rgba(100,80,20,0.1)');
-  orbGrad.addColorStop(1, 'rgba(0,0,0,0)');
-  ctx.fillStyle = orbGrad;
-  ctx.beginPath(); ctx.arc(orbX, orbY, orbR, 0, Math.PI*2); ctx.fill();
-
-  // Orb ring
-  ctx.strokeStyle = 'rgba(201,168,76,0.4)';
-  ctx.lineWidth = 2;
-  ctx.beginPath(); ctx.arc(orbX, orbY, orbR-10, 0, Math.PI*2); ctx.stroke();
-  ctx.strokeStyle = 'rgba(201,168,76,0.15)';
-  ctx.lineWidth = 1;
-  ctx.beginPath(); ctx.arc(orbX, orbY, orbR+30, 0, Math.PI*2); ctx.stroke();
-
-  // Team 1 left
-  drawFlag(ctx, m.f1, CW/4, 540, 110);
-  ctx.font = '700 64px Bebas Neue,sans-serif';
-  ctx.fillStyle = 'rgba(255,255,255,0.9)';
-  ctx.textAlign = 'center';
-  ctx.fillText(m.t1.toUpperCase(), CW/4, 660);
-
-  // Team 2 right
-  drawFlag(ctx, m.f2, 3*CW/4, 540, 110);
-  ctx.font = '700 64px Bebas Neue,sans-serif';
-  ctx.fillStyle = 'rgba(255,255,255,0.9)';
-  ctx.fillText(m.t2.toUpperCase(), 3*CW/4, 660);
-
-  // VS in orb
-  ctx.font = '700 120px Bebas Neue,sans-serif';
-  ctx.fillStyle = '#c9a84c';
-  ctx.shadowColor = 'rgba(201,168,76,0.6)';
-  ctx.shadowBlur = 24;
-  ctx.fillText('VS', CW/2, 720);
-  ctx.shadowBlur = 0;
-
-  // "WHO WINS?" question
-  ctx.font = '700 52px Bebas Neue,sans-serif';
-  ctx.fillStyle = 'rgba(255,255,255,0.7)';
-  ctx.textAlign = 'center';
-  ctx.letterSpacing = '4px';
-  ctx.fillText('WHO WINS?', CW/2, 850);
-  ctx.letterSpacing = '0px';
-
-  // Processing animation visual
-  const barY = 940;
-  ['ANALYZING FORM...', 'SCANNING HISTORY...', 'CALCULATING ODDS...'].forEach((txt, i) => {
-    const y = barY + i*80;
-    const barW = 200 + Math.random()*300;
-    ctx.fillStyle = 'rgba(201,168,76,0.15)';
-    roundRect(ctx, CW/2-350, y-28, 700, 44, 22); ctx.fill();
-    ctx.fillStyle = 'rgba(201,168,76,0.35)';
-    roundRect(ctx, CW/2-350, y-28, barW, 44, 22); ctx.fill();
-    ctx.font = '600 22px Inter,sans-serif';
-    ctx.fillStyle = 'rgba(255,255,255,0.5)';
-    ctx.textAlign = 'left';
-    ctx.fillText(txt, CW/2-330, y+6);
+// ═══════════════════════════════════════════════
+// STAT CARD RENDERER
+// ═══════════════════════════════════════════════
+function onCardTypeChange() {
+  const t = document.getElementById('sc-type').value;
+  ['big_stat','vs_card','countdown','fact_drop'].forEach(k => {
+    const el = document.getElementById('sc-fields-'+k);
+    if (el) el.style.display = (k === t) ? 'block' : 'none';
   });
-
-  // BIG REVEAL area
-  ctx.strokeStyle = 'rgba(201,168,76,0.3)';
-  ctx.lineWidth = 2;
-  const revY = 1240;
-  const sg2 = ctx.createLinearGradient(60, 0, CW-60, 0);
-  sg2.addColorStop(0,'transparent'); sg2.addColorStop(0.2,'rgba(201,168,76,.4)');
-  sg2.addColorStop(0.8,'rgba(201,168,76,.4)'); sg2.addColorStop(1,'transparent');
-  ctx.strokeStyle = sg2;
-  ctx.beginPath(); ctx.moveTo(60, revY); ctx.lineTo(CW-60, revY); ctx.stroke();
-
-  ctx.font = '700 36px Inter,sans-serif';
-  ctx.fillStyle = 'rgba(255,255,255,0.4)';
-  ctx.textAlign = 'center';
-  ctx.fillText('ORACLE\'S VERDICT', CW/2, revY + 60);
-
-  // Big question mark reveal
-  ctx.font = '700 260px Bebas Neue,sans-serif';
-  ctx.fillStyle = 'rgba(201,168,76,0.15)';
-  ctx.fillText('?', CW/2, revY + 340);
-
-  ctx.font = '600 34px Inter,sans-serif';
-  ctx.fillStyle = 'rgba(255,255,255,0.35)';
-  ctx.fillText('Find out in the video 👆', CW/2, revY + 380);
-
-  // Date line
-  ctx.font = '600 36px Inter,sans-serif';
-  ctx.fillStyle = 'rgba(201,168,76,0.7)';
-  ctx.fillText(m.date + (m.time !== 'TBD' ? '  ·  '+m.time : ''), CW/2, CH - 200);
-
-  ctx.font = '400 30px Inter,sans-serif';
-  ctx.fillStyle = 'rgba(255,255,255,0.3)';
-  ctx.fillText(m.city, CW/2, CH - 155);
-
-  drawWatermark(ctx, document.getElementById('watermark').value);
+  renderCard();
 }
 
-// ══════════════════════════════════════════════
-// TEMPLATE 3 — HYPE / COUNTDOWN
-// ══════════════════════════════════════════════
-function drawHype(ctx, m) {
-  drawPitchBG(ctx, '#0c0a04', '#1a1408');
-  drawTeamSplit(ctx, m.c1, m.c2, 0.2);
-  drawGoldTopBar(ctx);
-
-  // Fire gradient overlay at bottom
-  const fg = ctx.createLinearGradient(0, CH*0.6, 0, CH);
-  fg.addColorStop(0, 'rgba(0,0,0,0)');
-  fg.addColorStop(1, 'rgba(180,80,0,0.08)');
-  ctx.fillStyle = fg; ctx.fillRect(0, 0, CW, CH);
-
-  ctx.font = '700 28px Inter,sans-serif';
-  ctx.fillStyle = 'rgba(201,168,76,0.7)';
-  ctx.textAlign = 'center';
-  ctx.fillText('FIFA WORLD CUP 2026™', CW/2, 110);
-
-  // GAME DAY headline
-  ctx.font = '700 140px Bebas Neue,sans-serif';
-  ctx.fillStyle = '#c9a84c';
-  ctx.shadowColor = 'rgba(201,168,76,0.5)';
-  ctx.shadowBlur = 30;
-  ctx.textAlign = 'center';
-  ctx.fillText('GAME DAY', CW/2, 280);
-  ctx.shadowBlur = 0;
-
-  drawStagePill(ctx, m.stage, CW/2, 340);
-
-  // Teams
-  drawFlag(ctx, m.f1, CW/4, 560, 150);
-  drawTeamName(ctx, m.t1, CW/4, 720);
-
-  // Fire VS
-  ctx.font = '700 200px Bebas Neue,sans-serif';
-  const vsGrad = ctx.createLinearGradient(CW/2-100, 900, CW/2+100, 1050);
-  vsGrad.addColorStop(0, '#ffdd44');
-  vsGrad.addColorStop(0.5, '#ff6600');
-  vsGrad.addColorStop(1, '#c9a84c');
-  ctx.fillStyle = vsGrad;
-  ctx.shadowColor = 'rgba(255,100,0,0.5)';
-  ctx.shadowBlur = 40;
-  ctx.fillText('VS', CW/2, 1020);
-  ctx.shadowBlur = 0;
-
-  drawFlag(ctx, m.f2, 3*CW/4, 560, 150);
-  drawTeamName(ctx, m.t2, 3*CW/4, 720);
-
-  // Divider
-  const sg = ctx.createLinearGradient(60, 0, CW-60, 0);
-  sg.addColorStop(0,'transparent'); sg.addColorStop(0.5,'rgba(201,168,76,0.5)'); sg.addColorStop(1,'transparent');
-  ctx.strokeStyle = sg; ctx.lineWidth = 1.5;
-  ctx.beginPath(); ctx.moveTo(60,1080); ctx.lineTo(CW-60,1080); ctx.stroke();
-
-  // Date & time BIG
-  ctx.font = '700 72px Bebas Neue,sans-serif';
-  ctx.fillStyle = '#ffffff';
-  ctx.textAlign = 'center';
-  ctx.letterSpacing = '3px';
-  ctx.fillText(m.date.toUpperCase(), CW/2, 1170);
-  ctx.letterSpacing = '0px';
-
-  if (m.time !== 'TBD') {
-    ctx.font = '700 64px Bebas Neue,sans-serif';
-    ctx.fillStyle = '#c9a84c';
-    ctx.fillText(m.time, CW/2, 1250);
-  }
-
-  ctx.font = '400 38px Inter,sans-serif';
-  ctx.fillStyle = 'rgba(255,255,255,0.45)';
-  ctx.fillText(m.venue, CW/2, 1320);
-  ctx.font = '400 34px Inter,sans-serif';
-  ctx.fillStyle = 'rgba(255,255,255,0.3)';
-  ctx.fillText(m.city, CW/2, 1368);
-
-  // WHO ARE YOU BACKING?
-  ctx.font = '700 50px Bebas Neue,sans-serif';
-  ctx.fillStyle = 'rgba(201,168,76,0.8)';
-  ctx.letterSpacing = '2px';
-  ctx.fillText('WHO ARE YOU BACKING?', CW/2, CH - 200);
-  ctx.letterSpacing = '0px';
-
-  ctx.font = '500 36px Inter,sans-serif';
-  ctx.fillStyle = 'rgba(255,255,255,0.3)';
-  ctx.fillText('Drop your pick in the comments 👇', CW/2, CH - 150);
-
-  drawWatermark(ctx, document.getElementById('watermark').value);
+function renderCard() {
+  const canvas = document.getElementById('statCanvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  drawBase(ctx);
+  drawWatermark(ctx, document.getElementById('sc-watermark').value);
+  const type = document.getElementById('sc-type').value;
+  if (type === 'big_stat') drawBigStat(ctx);
+  else if (type === 'vs_card') drawVsCard(ctx);
+  else if (type === 'countdown') drawCountdown(ctx);
+  else if (type === 'fact_drop') drawFact(ctx);
 }
 
-// ══════════════════════════════════════════════
-// TEMPLATE 4 — RESULT CARD
-// ══════════════════════════════════════════════
-function drawResult(ctx, m) {
-  const s1 = parseInt(document.getElementById('score1').value) || 0;
-  const s2 = parseInt(document.getElementById('score2').value) || 0;
-  const winner = s1 > s2 ? 1 : s2 > s1 ? 2 : 0;
+function drawBigStat(ctx) {
+  const num = document.getElementById('sc-stat-num').value || '—';
+  const label = document.getElementById('sc-stat-label').value || 'Stat label';
+  const source = document.getElementById('sc-stat-source').value || '';
+  ctx.font = '700 32px Inter,sans-serif'; ctx.fillStyle = cardAccent; ctx.textAlign = 'center';
+  ctx.fillText('FIFA WORLD CUP 2026', CW/2, 120);
+  ctx.font = `700 ${num.length>4?260:360}px Bebas Neue,sans-serif`;
+  ctx.fillStyle = cardAccent; ctx.fillText(num, CW/2, CH/2-40);
+  ctx.strokeStyle = cardAccent; ctx.lineWidth = 4;
+  ctx.beginPath(); ctx.moveTo(CW/2-200, CH/2+20); ctx.lineTo(CW/2+200, CH/2+20); ctx.stroke();
+  ctx.font = '600 52px Inter,sans-serif'; ctx.fillStyle = '#fff';
+  wrapText(ctx, label.toUpperCase(), CW/2, CH/2+110, CW-160, 64);
+  if (source) { ctx.font='400 38px Inter,sans-serif'; ctx.fillStyle='rgba(255,255,255,.45)'; ctx.fillText(source, CW/2, CH/2+260); }
+}
 
-  drawPitchBG(ctx, '#040a08', '#0a1410');
-  drawTeamSplit(ctx, m.c1, m.c2, winner===1?0.25:winner===2?0.08:0.15);
+function drawVsCard(ctx) {
+  const t1 = (document.getElementById('sc-team1').value||'TEAM A').toUpperCase();
+  const t2 = (document.getElementById('sc-team2').value||'TEAM B').toUpperCase();
+  const f1 = document.getElementById('sc-flag1').value||'🏴';
+  const f2 = document.getElementById('sc-flag2').value||'🏴';
+  const dt = document.getElementById('sc-matchdate').value||'TBD';
+  const venue = document.getElementById('sc-venue').value||'';
+  ctx.font='700 32px Inter,sans-serif'; ctx.fillStyle=cardAccent; ctx.textAlign='center';
+  ctx.fillText('FIFA WORLD CUP 2026', CW/2, 120);
+  ctx.font='72px Inter,sans-serif'; ctx.fillStyle='#fff';
+  ctx.fillText(f1, CW/4, CH/2-180); ctx.fillText(f2, 3*CW/4, CH/2-180);
+  ctx.font=`700 ${t1.length>8?90:110}px Bebas Neue,sans-serif`;
+  ctx.fillText(t1, CW/4, CH/2-60); ctx.fillText(t2, 3*CW/4, CH/2-60);
+  ctx.font='700 160px Bebas Neue,sans-serif'; ctx.fillStyle=cardAccent; ctx.fillText('VS', CW/2, CH/2+20);
+  ctx.strokeStyle='rgba(255,255,255,.1)'; ctx.lineWidth=2;
+  ctx.beginPath(); ctx.moveTo(80,CH/2+80); ctx.lineTo(CW-80,CH/2+80); ctx.stroke();
+  ctx.font='600 52px Inter,sans-serif'; ctx.fillStyle=cardAccent; ctx.fillText(dt, CW/2, CH/2+160);
+  if (venue) { ctx.font='400 40px Inter,sans-serif'; ctx.fillStyle='rgba(255,255,255,.5)'; ctx.fillText(venue, CW/2, CH/2+230); }
+}
 
-  // Winner glow
-  if (winner === 1) {
-    const wg = ctx.createLinearGradient(0,0,CW/2,0);
-    wg.addColorStop(0,hex2rgba(m.c1,0.12)); wg.addColorStop(1,'transparent');
-    ctx.fillStyle = wg; ctx.fillRect(0,0,CW,CH);
-  } else if (winner === 2) {
-    const wg = ctx.createLinearGradient(CW,0,CW/2,0);
-    wg.addColorStop(0,hex2rgba(m.c2,0.12)); wg.addColorStop(1,'transparent');
-    ctx.fillStyle = wg; ctx.fillRect(0,0,CW,CH);
-  }
-
-  drawGoldTopBar(ctx);
-  drawWC2026Badge(ctx, 110);
-  drawStagePill(ctx, m.stage, CW/2, 178);
-
-  ctx.font = '700 36px Inter,sans-serif';
-  ctx.fillStyle = 'rgba(255,255,255,0.4)';
-  ctx.textAlign = 'center';
-  ctx.fillText('FULL TIME', CW/2, 240);
-
-  // Teams & flags
-  drawFlag(ctx, m.f1, CW/4, 500, 140);
-  drawTeamName(ctx, m.t1, CW/4, 660);
-  drawFlag(ctx, m.f2, 3*CW/4, 500, 140);
-  drawTeamName(ctx, m.t2, 3*CW/4, 660);
-
-  // Score box
-  ctx.fillStyle = 'rgba(0,0,0,0.5)';
-  roundRect(ctx, CW/2-220, 720, 440, 200, 20); ctx.fill();
-  ctx.strokeStyle = 'rgba(201,168,76,0.3)'; ctx.lineWidth = 1.5;
-  roundRect(ctx, CW/2-220, 720, 440, 200, 20); ctx.stroke();
-
-  ctx.font = '700 160px Bebas Neue,sans-serif';
-  ctx.textAlign = 'center';
-  ctx.fillStyle = s1 > s2 ? '#ffffff' : 'rgba(255,255,255,0.4)';
-  ctx.fillText(s1, CW/2-90, 886);
-  ctx.fillStyle = 'rgba(201,168,76,0.6)';
-  ctx.font = '700 80px Bebas Neue,sans-serif';
-  ctx.fillText('–', CW/2, 880);
-  ctx.fillStyle = s2 > s1 ? '#ffffff' : 'rgba(255,255,255,0.4)';
-  ctx.font = '700 160px Bebas Neue,sans-serif';
-  ctx.fillText(s2, CW/2+90, 886);
-
-  // Winner label
-  if (winner !== 0) {
-    const wt = winner === 1 ? m.t1 : m.t2;
-    ctx.font = '700 56px Bebas Neue,sans-serif';
-    ctx.fillStyle = '#c9a84c';
-    ctx.shadowColor = 'rgba(201,168,76,0.4)';
-    ctx.shadowBlur = 15;
-    ctx.textAlign = 'center';
-    ctx.letterSpacing = '3px';
-    ctx.fillText(wt.toUpperCase() + ' WIN!', CW/2, 1000);
-    ctx.letterSpacing = '0px';
-    ctx.shadowBlur = 0;
+function drawCountdown(ctx) {
+  const event = document.getElementById('sc-cd-event').value||'World Cup Kickoff';
+  const dtInput = document.getElementById('sc-cd-date').value;
+  const target = dtInput ? new Date(dtInput) : new Date('2026-06-11T15:00:00-05:00');
+  const diff = target - new Date();
+  ctx.font='700 32px Inter,sans-serif'; ctx.fillStyle=cardAccent; ctx.textAlign='center';
+  ctx.fillText('FIFA WORLD CUP 2026', CW/2, 120);
+  ctx.font='600 52px Inter,sans-serif'; ctx.fillStyle='rgba(255,255,255,.6)';
+  ctx.fillText(event.toUpperCase(), CW/2, CH/2-320);
+  if (diff<=0) {
+    ctx.font='700 180px Bebas Neue,sans-serif'; ctx.fillStyle=cardAccent; ctx.fillText("IT'S TIME!", CW/2, CH/2);
   } else {
-    ctx.font = '700 56px Bebas Neue,sans-serif';
-    ctx.fillStyle = '#c9a84c';
-    ctx.textAlign = 'center';
-    ctx.fillText('DRAW', CW/2, 1000);
+    const d=Math.floor(diff/86400000), h=Math.floor((diff%86400000)/3600000),
+          m=Math.floor((diff%3600000)/60000), s=Math.floor((diff%60000)/1000);
+    const units=[{v:d,l:'DAYS'},{v:h,l:'HRS'},{v:m,l:'MIN'},{v:s,l:'SEC'}];
+    const sx = CW/2-440;
+    units.forEach((u,i) => {
+      const x=sx+i*240, y=CH/2;
+      ctx.fillStyle='rgba(255,255,255,.06)'; roundRect(ctx,x-90,y-160,200,200,16); ctx.fill();
+      ctx.strokeStyle=cardAccent; ctx.lineWidth=2; roundRect(ctx,x-90,y-160,200,200,16); ctx.stroke();
+      ctx.font='700 140px Bebas Neue,sans-serif'; ctx.fillStyle=cardAccent;
+      ctx.fillText(String(u.v).padStart(2,'0'), x+10, y+10);
+      ctx.font='600 36px Inter,sans-serif'; ctx.fillStyle='rgba(255,255,255,.5)';
+      ctx.fillText(u.l, x+10, y+76);
+    });
   }
-
-  // Date
-  ctx.font = '500 38px Inter,sans-serif';
-  ctx.fillStyle = 'rgba(255,255,255,0.4)';
-  ctx.textAlign = 'center';
-  ctx.fillText(m.date + '  ·  ' + m.city, CW/2, 1080);
-
-  ctx.font = '500 32px Inter,sans-serif';
-  ctx.fillStyle = 'rgba(255,255,255,0.25)';
-  ctx.fillText(m.venue, CW/2, 1130);
-
-  drawWatermark(ctx, document.getElementById('watermark').value);
 }
 
-// ══════════════════════════════════════════════
-// TEMPLATE 5 — STAT DROP
-// ══════════════════════════════════════════════
-function drawStat(ctx, m) {
-  const num = document.getElementById('statNum').value || '?';
-  const label = document.getElementById('statLabel').value || 'Stat about this match';
-
-  drawPitchBG(ctx, '#060a10', '#0d1320');
-  drawTeamSplit(ctx, m.c1, m.c2, 0.12);
-  drawGoldTopBar(ctx);
-  drawWC2026Badge(ctx, 110);
-
-  // Match context
-  drawFlag(ctx, m.f1, CW/2-120, 280, 80);
-  ctx.font = '700 52px Bebas Neue,sans-serif';
-  ctx.fillStyle = 'rgba(255,255,255,0.7)';
-  ctx.textAlign = 'center';
-  ctx.fillText(m.t1.toUpperCase() + '  vs  ' + m.t2.toUpperCase(), CW/2, 340);
-  drawFlag(ctx, m.f2, CW/2+120, 280, 80);
-
-  drawStagePill(ctx, m.stage, CW/2, 398);
-
-  // Divider
-  const sg = ctx.createLinearGradient(60,0,CW-60,0);
-  sg.addColorStop(0,'transparent'); sg.addColorStop(0.5,'rgba(201,168,76,0.4)'); sg.addColorStop(1,'transparent');
-  ctx.strokeStyle = sg; ctx.lineWidth = 1;
-  ctx.beginPath(); ctx.moveTo(60,430); ctx.lineTo(CW-60,430); ctx.stroke();
-
-  // BIG number
-  const fs = num.length > 5 ? 280 : num.length > 3 ? 340 : 420;
-  ctx.font = `700 ${fs}px Bebas Neue,sans-serif`;
-  ctx.fillStyle = '#c9a84c';
-  ctx.shadowColor = 'rgba(201,168,76,0.35)';
-  ctx.shadowBlur = 30;
-  ctx.textAlign = 'center';
-  ctx.fillText(num, CW/2, 1020);
-  ctx.shadowBlur = 0;
-
-  // Underline
-  const ug = ctx.createLinearGradient(CW/2-200,0,CW/2+200,0);
-  ug.addColorStop(0,'rgba(201,168,76,0)'); ug.addColorStop(0.5,'rgba(201,168,76,0.7)'); ug.addColorStop(1,'rgba(201,168,76,0)');
-  ctx.strokeStyle = ug; ctx.lineWidth = 4;
-  ctx.beginPath(); ctx.moveTo(CW/2-200,1050); ctx.lineTo(CW/2+200,1050); ctx.stroke();
-
-  // Label
-  ctx.font = '600 52px Inter,sans-serif';
-  ctx.fillStyle = '#ffffff';
-  ctx.textAlign = 'center';
-  wrapText(ctx, label.toUpperCase(), CW/2, 1130, CW-140, 66);
-
-  // Date
-  ctx.font = '500 36px Inter,sans-serif';
-  ctx.fillStyle = 'rgba(201,168,76,0.6)';
-  ctx.fillText(m.date + '  ·  ' + m.city, CW/2, CH - 160);
-
-  drawWatermark(ctx, document.getElementById('watermark').value);
+function drawFact(ctx) {
+  const head=(document.getElementById('sc-fact-head').value||'DID YOU KNOW?').toUpperCase();
+  const body=document.getElementById('sc-fact-body').value||'';
+  ctx.font='700 32px Inter,sans-serif'; ctx.fillStyle=cardAccent; ctx.textAlign='center';
+  ctx.fillText('FIFA WORLD CUP 2026', CW/2, 120);
+  ctx.font='700 90px Bebas Neue,sans-serif'; ctx.fillStyle=cardAccent; ctx.fillText(head, CW/2, CH/2-260);
+  ctx.font='700 380px Bebas Neue,sans-serif'; ctx.fillStyle='rgba(201,168,76,.07)'; ctx.fillText('?', CW/2, CH/2+140);
+  ctx.font='600 56px Inter,sans-serif'; ctx.fillStyle='#fff';
+  wrapText(ctx, body, CW/2, CH/2-100, CW-140, 70);
 }
 
-// ══════════════════════════════════════════════
-// TEMPLATE 6 — HOT TAKE / QUOTE
-// ══════════════════════════════════════════════
-function drawQuote(ctx, m) {
-  const quote = document.getElementById('quoteText').value || 'This match will be one for the ages.';
-
-  drawPitchBG(ctx, '#0a0a0a', '#151515');
-  drawTeamSplit(ctx, m.c1, m.c2, 0.14);
-  drawGoldTopBar(ctx);
-  drawWC2026Badge(ctx, 110);
-
-  // Match line
-  ctx.font = '700 60px Bebas Neue,sans-serif';
-  ctx.fillStyle = 'rgba(255,255,255,0.8)';
-  ctx.textAlign = 'center';
-  ctx.fillText(`${m.f1} ${m.t1.toUpperCase()}  vs  ${m.t2.toUpperCase()} ${m.f2}`, CW/2, 260);
-  drawStagePill(ctx, m.stage, CW/2, 318);
-
-  // Quote marks deco
-  ctx.font = '700 400px Bebas Neue,sans-serif';
-  ctx.fillStyle = 'rgba(201,168,76,0.06)';
-  ctx.textAlign = 'left';
-  ctx.fillText('"', 30, 900);
-
-  // Quote box
-  ctx.fillStyle = 'rgba(0,0,0,0.4)';
-  roundRect(ctx, 60, 420, CW-120, 820, 20); ctx.fill();
-  ctx.strokeStyle = 'rgba(201,168,76,0.25)'; ctx.lineWidth = 1.5;
-  roundRect(ctx, 60, 420, CW-120, 820, 20); ctx.stroke();
-
-  // Left gold accent bar
-  ctx.fillStyle = '#c9a84c';
-  roundRect(ctx, 60, 420, 8, 820, 4); ctx.fill();
-
-  // Quote text
-  ctx.font = '600 58px Inter,sans-serif';
-  ctx.fillStyle = '#ffffff';
-  ctx.textAlign = 'left';
-  wrapText(ctx, '"' + quote + '"', 110, 520, CW-200, 76);
-
-  // Attribution line
-  ctx.font = '500 36px Inter,sans-serif';
-  ctx.fillStyle = 'rgba(201,168,76,0.7)';
-  ctx.textAlign = 'right';
-  ctx.fillText('— Hot take by ' + (document.getElementById('watermark').value || '@WC2026'), CW-80, 1260);
-
-  // Date
-  ctx.font = '600 40px Inter,sans-serif';
-  ctx.fillStyle = 'rgba(255,255,255,0.4)';
-  ctx.textAlign = 'center';
-  ctx.fillText(m.date + '  ·  ' + m.city, CW/2, CH - 160);
-
-  drawWatermark(ctx, document.getElementById('watermark').value);
+// ═══════════════════════════════════════════════
+// PREDICTION CARD
+// ═══════════════════════════════════════════════
+function renderPredCard() {
+  const canvas = document.getElementById('predCanvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  drawBase(ctx);
+  ctx.font='700 100px Bebas Neue,sans-serif'; ctx.fillStyle='#c9a84c'; ctx.textAlign='center';
+  ctx.fillText('MY WC 2026', CW/2, 180);
+  ctx.font='700 80px Bebas Neue,sans-serif'; ctx.fillStyle='rgba(255,255,255,.7)';
+  ctx.fillText('PREDICTIONS', CW/2, 270);
+  ctx.strokeStyle='rgba(201,168,76,.3)'; ctx.lineWidth=2;
+  ctx.beginPath(); ctx.moveTo(80,310); ctx.lineTo(CW-80,310); ctx.stroke();
+  const rows=[
+    {icon:'🏆',label:'CHAMPION',val:document.getElementById('pred-winner').value},
+    {icon:'🥈',label:'RUNNER-UP',val:document.getElementById('pred-runnerup').value},
+    {icon:'🐴',label:'DARK HORSE',val:document.getElementById('pred-dark').value},
+    {icon:'💣',label:'BIGGEST UPSET',val:document.getElementById('pred-upset').value},
+    {icon:'⚽',label:'GOLDEN BOOT',val:document.getElementById('pred-boot').value},
+  ];
+  rows.forEach((r,i) => {
+    const y=380+i*240;
+    ctx.fillStyle=i===0?'rgba(201,168,76,.1)':'rgba(255,255,255,.04)';
+    roundRect(ctx,60,y,CW-120,200,16); ctx.fill();
+    ctx.strokeStyle=i===0?'rgba(201,168,76,.3)':'rgba(255,255,255,.07)'; ctx.lineWidth=1;
+    roundRect(ctx,60,y,CW-120,200,16); ctx.stroke();
+    ctx.font='52px Inter,sans-serif'; ctx.fillStyle='#fff'; ctx.textAlign='left'; ctx.fillText(r.icon,100,y+78);
+    ctx.font='600 32px Inter,sans-serif'; ctx.fillStyle='rgba(255,255,255,.45)'; ctx.fillText(r.label,170,y+55);
+    ctx.font=`600 ${r.val.length>18?42:52}px Inter,sans-serif`;
+    ctx.fillStyle=i===0?'#c9a84c':'#fff';
+    wrapText(ctx,r.val,170,y+108,CW-280,58);
+  });
+  const take=document.getElementById('pred-take').value;
+  if (take) {
+    const ty=380+rows.length*240+40;
+    ctx.fillStyle='rgba(217,48,37,.12)'; roundRect(ctx,60,ty,CW-120,160,16); ctx.fill();
+    ctx.strokeStyle='rgba(217,48,37,.3)'; ctx.lineWidth=1; roundRect(ctx,60,ty,CW-120,160,16); ctx.stroke();
+    ctx.font='600 32px Inter,sans-serif'; ctx.fillStyle='#d93025'; ctx.textAlign='left'; ctx.fillText('🔥 HOT TAKE',100,ty+52);
+    ctx.font='500 38px Inter,sans-serif'; ctx.fillStyle='#fff';
+    wrapText(ctx,take,100,ty+105,CW-200,46);
+  }
+  drawWatermark(ctx, document.getElementById('pred-wm').value);
 }
 
-// ══════════════════════════════════════════════
+// ═══════════════════════════════════════════════
 // EXPORT
-// ══════════════════════════════════════════════
-function savePNG() {
-  if (!selectedMatch) { showToast('Select a match first'); return; }
-  renderCard();
-  const canvas = document.getElementById('mainCanvas');
-  const name = `WC2026_${selectedMatch.t1}_vs_${selectedMatch.t2}_${selectedTemplate}.png`.replace(/\s+/g,'_');
+// ═══════════════════════════════════════════════
+function exportPNG(canvasId, filename) {
+  const canvas = document.getElementById(canvasId);
+  if (!canvas) return;
+  if (canvasId === 'statCanvas') renderCard();
+  if (canvasId === 'predCanvas') renderPredCard();
   const a = document.createElement('a');
-  a.download = name;
-  a.href = canvas.toDataURL('image/png');
-  a.click();
-  showToast('PNG saved! ✓');
+  a.download = filename; a.href = canvas.toDataURL('image/png'); a.click();
+  showToast('PNG saved!');
 }
 
-async function copyCanvas() {
-  if (!selectedMatch) return;
-  renderCard();
-  const canvas = document.getElementById('mainCanvas');
-  canvas.toBlob(async blob => {
-    try {
-      await navigator.clipboard.write([new ClipboardItem({'image/png': blob})]);
-      showToast('Copied to clipboard!');
-    } catch(e) { showToast('Copy failed — use Save PNG instead'); }
+function exportVideo(canvasId, filename) {
+  const canvas = document.getElementById(canvasId);
+  if (!canvas) { showToast('Canvas not found'); return; }
+  const statusEl = document.getElementById('sc-status');
+  if (statusEl) statusEl.textContent = 'Recording 3s…';
+  const stream = canvas.captureStream(30);
+  const mimeType = MediaRecorder.isTypeSupported('video/mp4') ? 'video/mp4' : 'video/webm';
+  const ext = mimeType.includes('mp4') ? 'mp4' : 'webm';
+  const recorder = new MediaRecorder(stream, { mimeType, videoBitsPerSecond: 6_000_000 });
+  const chunks = [];
+  recorder.ondataavailable = e => { if (e.data.size > 0) chunks.push(e.data); };
+  recorder.onstop = () => {
+    const blob = new Blob(chunks, { type: mimeType });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href = url; a.download = filename+'.'+ext; a.click();
+    URL.revokeObjectURL(url);
+    if (statusEl) statusEl.textContent = 'Saved as .'+ext;
+    showToast('Video saved!');
+  };
+  recorder.start();
+  let f = 0;
+  const tick = setInterval(() => {
+    f++;
+    if (canvasId === 'statCanvas' && document.getElementById('sc-type').value === 'countdown') renderCard();
+    if (f >= 90) { clearInterval(tick); recorder.stop(); }
+  }, 1000/30);
+}
+
+// ═══════════════════════════════════════════════
+// AI ORACLE
+// ═══════════════════════════════════════════════
+function updateOracleDisplay() {
+  document.getElementById('sc-total').textContent = oracleScore.total;
+  document.getElementById('sc-correct').textContent = oracleScore.correct;
+  document.getElementById('sc-wrong').textContent = oracleScore.wrong;
+}
+
+function saveOracle() {
+  try { localStorage.setItem('oracleScore', JSON.stringify(oracleScore)); } catch(e) {}
+  updateOracleDisplay();
+}
+
+function scoreRight() { oracleScore.total++; oracleScore.correct++; saveOracle(); showToast('✅ Logged — AI was right!'); }
+function scoreWrong() { oracleScore.total++; oracleScore.wrong++; saveOracle(); showToast('💀 Logged — AI WRONG!'); }
+function resetScore() { oracleScore = {total:0,correct:0,wrong:0}; saveOracle(); showToast('Score reset'); }
+
+async function generateOraclePre() {
+  const match = document.getElementById('or-match').value.trim();
+  if (!match) { showToast('Enter match first'); return; }
+  const stage = document.getElementById('or-stage').value;
+  const gut = document.getElementById('or-gut').value.trim();
+  setLoading('or-pre-btn', true, 'Generate pre-match prediction');
+  const prompt = `You are an AI sports oracle making a bold WC 2026 prediction for TikTok.
+MATCH: ${match}
+STAGE: ${stage}
+${gut ? 'CREATOR HINT: '+gut : ''}
+Rules: give specific win % for each team (sum to 100), be definitive, confident over-the-top oracle tone, include 1 specific reason, under 30 seconds spoken, end with "Drop your prediction below 👇 Let's see who's right."
+Respond ONLY in JSON: {"script":"full spoken script under 30s","caption":"1-2 sentence TikTok caption with percentages","hashtags":"hashtags including #WorldCup2026 #WC2026 #AIprediction #OraclePredicts"}`;
+  try {
+    const p = await callClaude(prompt, 600);
+    document.getElementById('or-pre-text').textContent = p.script + '\n\nCAPTION: ' + p.caption + '\n\n' + p.hashtags;
+    document.getElementById('or-pre-out').style.display = 'block';
+  } catch(e) { showToast('Error'); console.error(e); }
+  setLoading('or-pre-btn', false, 'Generate pre-match prediction');
+}
+
+async function generateOraclePost() {
+  const result = document.getElementById('or-result').value.trim();
+  if (!result) { showToast('Enter the actual result first'); return; }
+  const match = document.getElementById('or-match').value.trim();
+  const diff = document.getElementById('or-diff').value.trim();
+  const moment = document.getElementById('or-moment').value.trim();
+  setLoading('or-post-btn', true, 'Generate accountability video');
+  const prompt = `Generate a "Prediction Accountability" TikTok script where AI got it wrong (people love this).
+MATCH: ${match}
+ACTUAL RESULT: ${result}
+${diff ? 'AI PREDICTED: '+diff : ''}
+${moment ? 'DRAMATIC MOMENT: '+moment : ''}
+Rules: be self-deprecating, funny, shocked — people love seeing confident predictions fail. Reference specific percentage vs reality. Under 30 seconds. End with "Were YOU right? Drop your score below 👇"
+Respond ONLY in JSON: {"script":"full accountability script under 30s, punchy and funny","caption":"caption highlighting the fail","hashtags":"hashtags including #AIwasWrong #WorldCup2026 #WC2026"}`;
+  try {
+    const p = await callClaude(prompt, 600);
+    document.getElementById('or-post-text').textContent = p.script + '\n\nCAPTION: ' + p.caption + '\n\n' + p.hashtags;
+    document.getElementById('or-post-out').style.display = 'block';
+  } catch(e) { showToast('Error'); console.error(e); }
+  setLoading('or-post-btn', false, 'Generate accountability video');
+}
+
+// ═══════════════════════════════════════════════
+// HUMAN STORY
+// ═══════════════════════════════════════════════
+const SPARKS = [
+  {icon:'🇳🇵',title:'Nepal at 3am',prompt:'Nepal fans waking up at 3am to watch the World Cup'},
+  {icon:'👴',title:'Father & son',prompt:'Father and son watching the World Cup together for the first time'},
+  {icon:'🌍',title:'Morocco diaspora',prompt:'Morocco diaspora in Europe watching their team reach the QF'},
+  {icon:'💔',title:'England heartbreak',prompt:'England fans — the eternal hope and heartbreak cycle every World Cup'},
+  {icon:'✨',title:'What if Nepal?',prompt:'What if Nepal qualified for the World Cup 2026?'},
+  {icon:'🏙️',title:'Dallas fan zone',prompt:'Fans from 50 countries gathering at the Dallas fan zone'},
+  {icon:'🌙',title:'Muslim players fasting',prompt:'Muslim players fasting during Ramadan while competing at the highest level'},
+  {icon:'🏳️',title:'Never qualified',prompt:'A country that has never qualified watching from home dreaming of one day being there'},
+  {icon:'🤖',title:'Messi + Ronaldo',prompt:'What if Messi and Ronaldo played on the same team?'},
+  {icon:'🇧🇷',title:'Brazil stops',prompt:'When Brazil plays, the entire country of 220 million people stops'},
+  {icon:'📻',title:'One shared screen',prompt:'A village with one shared screen watching the World Cup together'},
+  {icon:'👶',title:'Born for another flag',prompt:'Players who were born in one country but play for another — what does home really mean?'},
+];
+
+function buildStorySparks() {
+  const container = document.getElementById('storySparks');
+  if (!container) return;
+  SPARKS.forEach(s => {
+    const el = document.createElement('div');
+    el.className = 'spark-card';
+    el.innerHTML = '<div style="font-size:18px;margin-bottom:4px">'+s.icon+'</div><div style="font-size:12px;font-weight:600;color:var(--text);margin-bottom:2px">'+s.title+'</div><div style="font-size:11px;color:var(--muted);line-height:1.4">'+s.prompt+'</div>';
+    el.onclick = function() {
+      document.getElementById('hs-match').value = s.prompt;
+      showToast('Story loaded — hit Generate!');
+    };
+    container.appendChild(el);
   });
 }
 
-function showToast(msg) {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 2400);
+async function generateHumanStory() {
+  const angle = document.getElementById('hs-angle').value;
+  const match = document.getElementById('hs-match').value.trim();
+  const context = document.getElementById('hs-context').value.trim();
+  if (!match) { showToast('Enter a match or topic first'); return; }
+  setLoading('hs-btn', true, 'Generate human story script');
+
+  const angleDesc = {
+    woke_up_3am:'someone who woke up at 3am just to watch this match — the sacrifice, love, community',
+    diaspora:'diaspora fans watching their home country from thousands of miles away — distance, belonging, pride or heartbreak',
+    nepal_watching:'Nepali fans and the Nepali diaspora — their passion despite Nepal never qualifying, waking up at odd hours, community around one screen',
+    fan_emotion:'emotional experience of fans after the result — not the score, the FEELING',
+    father_son:'a father and son watching together — passing down love of the game across generations',
+    country_never_qualified:'fans of a country that has never qualified — watching from home, dreaming of one day being there',
+    underdog_nation:'incredible journey of a smaller underdog nation nobody expected to go this far',
+    what_if_nepal:'imagine if Nepal qualified for WC2026 — what it would mean for 30 million people who love football but have never seen their team on the biggest stage',
+    what_if_scenario:'creative "What if?" scenario that reimagines football history or future in a fascinating way',
+  };
+
+  const langInstr = {
+    english:'Write entirely in English.',
+    nepali_english:'Write primarily in English but naturally weave in Nepali words where authentic (dai, bhai, ekdum, desh). Do not over-translate. Let it feel like how a Nepali diaspora person actually speaks.',
+    nepali:'Write entirely in Nepali (Devanagari script). Make it poetic and emotional.'
+  };
+
+  const fmtInstr = {
+    voiceover:'Format for voiceover narration — flowing prose, emotional, cinematic. Think documentary narrator.',
+    text_screen:'Format for text-on-screen — short punchy lines under 10 words each, separated by |||',
+    face_cam:'Format for face-cam — conversational, natural pauses marked as [PAUSE]'
+  };
+
+  const prompt = `You are a viral storytelling TikTok creator. Secret weapon: you cover PEOPLE watching matches, not the matches. This creates emotional content that transcends football.
+
+ANGLE: ${angleDesc[angle] || angle}
+TOPIC: ${match}
+${context ? 'CONTEXT: '+context : ''}
+LANGUAGE: ${langInstr[chipState.lang]}
+FORMAT: ${fmtInstr[chipState.hsfmt]}
+
+Opening rule: Start with a SCENE not a statement. "Somewhere in Kathmandu..." or "It's 2:47am in London..." Drop viewer INTO the story immediately.
+
+Respond ONLY in JSON: {"opening":"Scene-setter opening max 2 sentences. Vivid specific scene. This is the hook.","story":"Full script 20-45 seconds. Emotional and specific. Do NOT lead with the scoreline. End with a universal truth about football, love, belonging, or sacrifice.","caption":"1-2 sentence TikTok caption. End with a question about their own experience.","hashtags":"10 hashtags mixing football tags with story/emotion tags"}`;
+
+  try {
+    const p = await callClaude(prompt, 900);
+    document.getElementById('hs-open').textContent = p.opening;
+    document.getElementById('hs-story').textContent = p.story;
+    document.getElementById('hs-caption').textContent = p.caption;
+    document.getElementById('hs-tags').textContent = p.hashtags;
+    document.getElementById('hs-output').style.display = 'block';
+  } catch(e) { showToast('Error'); console.error(e); }
+  setLoading('hs-btn', false, 'Generate human story script');
+}
+
+// ═══════════════════════════════════════════════
+// CONTENT CALENDAR
+// ═══════════════════════════════════════════════
+const CAL = [
+  {date:'Jun 9',match:null,idea:'My 5 bold WC 2026 predictions',fmt:'script',type:'script'},
+  {date:'Jun 10',match:null,idea:'Dark horse team nobody is watching',fmt:'stat card',type:'graphic'},
+  {date:'Jun 11',match:'Mexico vs S.Africa — TOURNAMENT OPENS',idea:'React to opening match + first impressions',fmt:'face-cam',type:'match'},
+  {date:'Jun 12',match:'USA vs Paraguay',idea:'USMNT game day hype + prediction',fmt:'face-cam',type:'match'},
+  {date:'Jun 13',match:'Brazil + England open',idea:'Who has the stronger squad? Stat breakdown',fmt:'stat card',type:'match'},
+  {date:'Jun 14',match:'France + Argentina open',idea:'React fast — Mbappe vs Messi group stage',fmt:'face-cam',type:'match'},
+  {date:'Jun 15',match:null,idea:'Day 5 recap — biggest surprise so far',fmt:'voiceover',type:'script'},
+  {date:'Jun 16',match:'Group stage',idea:'Team power ranking update after 5 days',fmt:'graphic',type:'graphic'},
+  {date:'Jun 17',match:'Group stage',idea:'Best goal so far — reaction + breakdown',fmt:'face-cam',type:'match'},
+  {date:'Jun 18',match:'Group stage',idea:'Prediction update — who looks better / worse',fmt:'script',type:'script'},
+  {date:'Jun 19',match:'Group stage',idea:'The team nobody is talking about…',fmt:'voiceover',type:'script'},
+  {date:'Jun 20',match:'Group stage',idea:'Mind-blowing WC stats after 10 days',fmt:'stat card',type:'graphic'},
+  {date:'Jun 21',match:'Group stage',idea:'Human story: fans waking up at 3am in Nepal',fmt:'voiceover',type:'script'},
+  {date:'Jun 22',match:'Group stage',idea:'Controversial hot take about a big team',fmt:'face-cam',type:'script'},
+  {date:'Jun 23',match:'Group stage',idea:'Who gets eliminated first — bracket update',fmt:'graphic',type:'graphic'},
+  {date:'Jun 24',match:'Group stage',idea:'Best XI of the tournament so far',fmt:'stat card',type:'graphic'},
+  {date:'Jun 25',match:'Group stage — key clashes',idea:'Match preview: most important game this week',fmt:'face-cam',type:'match'},
+  {date:'Jun 26',match:'Group stage',idea:'React to biggest result FAST (within 2hrs)',fmt:'face-cam',type:'match'},
+  {date:'Jun 27',match:'Group stage ends',idea:'Final group standings — who advanced?',fmt:'graphic',type:'match'},
+  {date:'Jun 28',match:null,idea:'Full bracket: my Round of 32 predictions',fmt:'graphic',type:'graphic'},
+  {date:'Jun 29',match:'Round of 32 begins',idea:'Biggest R32 matchup preview',fmt:'face-cam',type:'match'},
+  {date:'Jun 30',match:'R32 continues',idea:'Upset alert — post within 30 min if it happens',fmt:'face-cam',type:'match'},
+  {date:'Jul 1',match:'R32',idea:'3 teams that will NOT make the QF',fmt:'voiceover',type:'script'},
+  {date:'Jul 2',match:'R32',idea:'Player of the tournament — debate bait',fmt:'face-cam',type:'script'},
+  {date:'Jul 3',match:'R32',idea:'React to wildest result of Round of 32',fmt:'face-cam',type:'match'},
+  {date:'Jul 4',match:'R32 ends',idea:'Round of 16 confirmed — hype post',fmt:'graphic',type:'match'},
+  {date:'Jul 5',match:'Round of 16',idea:'QF prediction bracket',fmt:'graphic',type:'match'},
+  {date:'Jul 6',match:'R16',idea:'The matchup I am most scared of for my pick',fmt:'face-cam',type:'script'},
+  {date:'Jul 7',match:'R16',idea:'Human story: diaspora watching their country',fmt:'voiceover',type:'script'},
+  {date:'Jul 8',match:'R16',idea:'The breakout star of this tournament',fmt:'stat card',type:'graphic'},
+  {date:'Jul 9',match:'R16 ends',idea:'Quarterfinal confirmed — who wins it all?',fmt:'graphic',type:'match'},
+  {date:'Jul 10',match:'Quarterfinals',idea:'QF Day 1 REACTION — post within 2hrs of FT',fmt:'face-cam',type:'match'},
+  {date:'Jul 11',match:'Quarterfinals',idea:'QF Day 2 — debate the results',fmt:'face-cam',type:'match'},
+  {date:'Jul 12',match:null,idea:'Semifinal preview — who goes through?',fmt:'graphic',type:'graphic'},
+  {date:'Jul 14',match:'Semifinals',idea:'SF Day 1 — react within 90 minutes of FT',fmt:'face-cam',type:'match'},
+  {date:'Jul 15',match:'Semifinals',idea:'SF Day 2 — FINAL IS SET. Who wins it?',fmt:'face-cam',type:'match'},
+  {date:'Jul 16',match:null,idea:'FINAL PREVIEW — full breakdown',fmt:'voiceover',type:'script'},
+  {date:'Jul 18',match:null,idea:'24 HOURS to the final — hype countdown',fmt:'graphic',type:'graphic'},
+  {date:'Jul 19',match:'🏆 FINAL — MetLife Stadium NJ',idea:'Post reaction WITHIN 20 MINUTES of final whistle',fmt:'URGENT face-cam',type:'match'},
+];
+
+function buildCalendar() {
+  const grid = document.getElementById('calGrid');
+  if (!grid) return;
+  grid.innerHTML = '';
+  const list = calFilter === 'all' ? CAL : CAL.filter(d => {
+    if (calFilter==='match') return d.type==='match';
+    if (calFilter==='graphic') return d.type==='graphic';
+    if (calFilter==='script') return d.type==='script';
+    return true;
+  });
+  list.forEach(d => {
+    const card = document.createElement('div');
+    card.className = 'cal-day' + (d.type==='match' ? ' match-day' : '');
+    card.innerHTML = '<div class="cal-date">'+d.date+'</div>'
+      + (d.match ? '<div class="match-tag">⚽ '+d.match+'</div>' : '')
+      + '<div class="cal-idea">'+d.idea+'</div>'
+      + '<span class="cal-format">'+d.fmt+'</span>';
+    card.onclick = function() {
+      document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.getElementById('panel-scripts').classList.add('active');
+      document.getElementById('tab-scripts').classList.add('active');
+      document.getElementById('sg-topic').value = d.idea;
+      showToast('Loaded → now hit Generate!');
+    };
+    grid.appendChild(card);
+  });
+}
+
+// ═══════════════════════════════════════════════
+// HASHTAGS
+// ═══════════════════════════════════════════════
+const HT = {
+  general:{tags:['#WorldCup2026','#WC2026','#soccer','#football','#FIFA2026','#WorldCup','#soccertiktok','#footballtiktok','#sports','#worldcupgoals','#futbol'],notes:'Core set for all WC content. Always include #WC2026 and #WorldCup2026. Avoid official ™ marks. Mix broad (#soccer) with niche (#WC2026).'},
+  match_day:{tags:['#WC2026','#WorldCup2026','#matchday','#soccer','#football','#gameday','#footballtiktok','#soccertiktok','#WCmatchday','#worldcuplive','#footballpredictions'],notes:'Post 1-2hrs BEFORE for pre-match content. Post within 90 min after FT for reactions — the algorithm peak window is tight.'},
+  upset:{tags:['#WC2026','#WorldCup2026','#upset','#shock','#worldcupshock','#footballshock','#sports','#viral','#worldcup','#soccer','#footballtiktok'],notes:'SPEED IS EVERYTHING for upset content. Post within 30 minutes. Add the specific team hashtag (#Germany, #Brazil, etc.).'},
+  prediction:{tags:['#WC2026predictions','#WorldCup2026','#mypredictions','#footballpredictions','#soccerpredictions','#WC2026','#whowinsworldcup','#worldcupwinner','#soccer','#football','#bracket2026'],notes:'Prediction content gets massive save rates. Always end caption with "Who do YOU think wins? Drop your pick below 👇". Saves + comments = algorithm rocket.'},
+  oracle:{tags:['#AIOracle','#AIprediction','#AIwasWrong','#OraclePredicts','#WC2026','#WorldCup2026','#soccer','#football','#footballpredictions','#AIvsreality'],notes:'For the Oracle series, the failure/accountability videos outperform prediction videos 3:1. Lead with the dramatic fail in caption. Running scoreboard posts ("AI is now 8/22") get strong shares.'},
+  human_story:{tags:['#footballstories','#WorldCup2026','#WC2026','#soccer','#football','#sportsstories','#humanstory','#footballfans','#worldcup','#diaspora','#footballemotion'],notes:'Human story content gets saved at very high rates. People save things that make them feel understood. The diaspora and "watching at 3am" angles are universally relatable.'},
+  nepal:{tags:['#Nepal','#Nepali','#NepaliDiaspora','#NepalFootball','#WorldCup2026','#WC2026','#soccer','#NepaliTikTok','#Kathmandu','#footballNepal','#नेपाल'],notes:'Nepal niche = almost ZERO competition. The Nepali diaspora is extremely engaged on TikTok. Mix English and Nepali tags. "What if Nepal qualified?" content performs especially well with diaspora audiences globally.'},
+  usa:{tags:['#USMNT','#USsoccer','#TeamUSA','#WC2026','#WorldCup2026','#soccer','#americansoccer','#USAvsworld','#footballUSA','#WC2026USA','#footballtiktok'],notes:'USMNT content performs very well with US audiences. Dallas, Miami, NYC host games — tag host cities on match days for local reach boost.'},
+  brazil:{tags:['#Brazil','#Selecao','#BrazilNT','#WC2026','#WorldCup2026','#football','#brazilianfootball','#soccer','#ViniciusJr','#futbol'],notes:'Brazil has the largest global football fanbase. Content with #Brazil gets pushed internationally. Post during Brazilian timezone (GMT-3) for peak engagement.'},
+  argentina:{tags:['#Argentina','#Messi','#AlbiCeleste','#WC2026','#WorldCup2026','#futbol','#football','#soccer','#ArgentinaNT','#worldchampions','#footballtiktok'],notes:'Argentina defending champion = massive engagement. Any Messi content still goes viral. Debate format: "Can Argentina repeat?" drives huge comments.'},
+  england:{tags:['#England','#ThreeLions','#ENGFUT','#WC2026','#WorldCup2026','#football','#englandfootball','#soccertiktok','#Bellingham','#EnglandNT','#footballtiktok'],notes:'England fans are extremely active. The suffering/hope narrative drives massive engagement. Classic format: "This is England\'s year... right?" Always gets comments.'},
+  host_city:{tags:['#Dallas','#DFW','#WC2026Dallas','#ATTStadium','#WorldCup2026','#WC2026','#soccer','#TexasSoccer','#footballDallas','#WC2026USA','#sports'],notes:'Dallas host city content hits LOCAL audiences who will actually be at games. Consider filming near AT&T Stadium on match days for original local content nobody else has.'},
+};
+
+function renderHashtags() {
+  const sit = document.getElementById('ht-situation').value;
+  const team = document.getElementById('ht-team').value.trim();
+  const set = HT[sit];
+  if (!set) return;
+  let tags = [...set.tags];
+  if (team) tags.push('#'+team.replace(/\s+/g,''));
+  document.getElementById('ht-box').textContent = tags.join(' ');
+  document.getElementById('ht-count').textContent = tags.length + ' hashtags';
+  document.getElementById('ht-notes').textContent = set.notes;
+}
+
+// ═══════════════════════════════════════════════
+// MATCH CARDS — DATA & LOGIC
+// ═══════════════════════════════════════════════
+const MC_MATCHES = [
+  {id:1,t1:'Mexico',t2:'South Africa',f1:'MX',f2:'ZA',date:'Jun 11',time:'3:00 PM ET',venue:'Estadio Azteca',city:'Mexico City',stage:'Group A',c1:'#006847',c2:'#007A4D'},
+  {id:2,t1:'South Korea',t2:'Czechia',f1:'KR',f2:'CZ',date:'Jun 11',time:'10:00 PM ET',venue:'Estadio Akron',city:'Guadalajara',stage:'Group A',c1:'#C60C30',c2:'#D7141A'},
+  {id:3,t1:'USA',t2:'Paraguay',f1:'US',f2:'PY',date:'Jun 12',time:'9:00 PM ET',venue:'SoFi Stadium',city:'Los Angeles',stage:'Group B',c1:'#002868',c2:'#D52B1E'},
+  {id:4,t1:'Canada',t2:'Bosnia-Herzegovina',f1:'CA',f2:'BA',date:'Jun 12',time:'3:00 PM ET',venue:'BMO Field',city:'Toronto',stage:'Group B',c1:'#FF0000',c2:'#002395'},
+  {id:5,t1:'Brazil',t2:'Croatia',f1:'BR',f2:'HR',date:'Jun 13',time:'TBD',venue:'Rose Bowl',city:'Los Angeles',stage:'Group C',c1:'#009C3B',c2:'#FF0000'},
+  {id:6,t1:'Japan',t2:'Cameroon',f1:'JP',f2:'CM',date:'Jun 13',time:'TBD',venue:'AT&T Stadium',city:'Dallas',stage:'Group C',c1:'#BC002D',c2:'#007A5E'},
+  {id:7,t1:'England',t2:'Serbia',f1:'GB',f2:'RS',date:'Jun 13',time:'TBD',venue:'Mercedes-Benz',city:'Atlanta',stage:'Group D',c1:'#003087',c2:'#C6363C'},
+  {id:8,t1:'Netherlands',t2:'Senegal',f1:'NL',f2:'SN',date:'Jun 14',time:'TBD',venue:'Lincoln Financial',city:'Philadelphia',stage:'Group D',c1:'#FF4B00',c2:'#00853F'},
+  {id:9,t1:'France',t2:'Argentina',f1:'FR',f2:'AR',date:'Jun 14',time:'TBD',venue:'MetLife Stadium',city:'New York',stage:'Group E',c1:'#002395',c2:'#74ACDF'},
+  {id:10,t1:'Poland',t2:'Saudi Arabia',f1:'PL',f2:'SA',date:'Jun 14',time:'TBD',venue:'Gillette Stadium',city:'Boston',stage:'Group E',c1:'#DC143C',c2:'#006C35'},
+  {id:11,t1:'Spain',t2:'Morocco',f1:'ES',f2:'MA',date:'Jun 15',time:'TBD',venue:'Hard Rock Stadium',city:'Miami',stage:'Group F',c1:'#AA151B',c2:'#C1272D'},
+  {id:12,t1:'Portugal',t2:'Algeria',f1:'PT',f2:'DZ',date:'Jun 15',time:'TBD',venue:'Arrowhead Stadium',city:'Kansas City',stage:'Group F',c1:'#006600',c2:'#006233'},
+  {id:13,t1:'Germany',t2:'Uruguay',f1:'DE',f2:'UY',date:'Jun 15',time:'TBD',venue:'AT&T Stadium',city:'Dallas',stage:'Group G',c1:'#000000',c2:'#75AADB'},
+  {id:14,t1:'Colombia',t2:'Nigeria',f1:'CO',f2:'NG',date:'Jun 16',time:'TBD',venue:'SoFi Stadium',city:'Los Angeles',stage:'Group G',c1:'#FCD116',c2:'#008751'},
+  {id:15,t1:'Belgium',t2:'New Zealand',f1:'BE',f2:'NZ',date:'Jun 16',time:'TBD',venue:'BC Place',city:'Vancouver',stage:'Group H',c1:'#EF3340',c2:'#00247D'},
+  {id:16,t1:'Austria',t2:'Egypt',f1:'AT',f2:'EG',date:'Jun 16',time:'TBD',venue:'Estadio BBVA',city:'Monterrey',stage:'Group H',c1:'#ED2939',c2:'#CE1126'},
+  {id:17,t1:'Italy',t2:'Ecuador',f1:'IT',f2:'EC',date:'Jun 17',time:'TBD',venue:'Lincoln Financial',city:'Philadelphia',stage:'Group I',c1:'#009246',c2:'#FFD100'},
+  {id:18,t1:'Chile',t2:'Ivory Coast',f1:'CL',f2:'CI',date:'Jun 17',time:'TBD',venue:'MetLife Stadium',city:'New York',stage:'Group I',c1:'#D52B1E',c2:'#F77F00'},
+  {id:19,t1:'Iran',t2:'DR Congo',f1:'IR',f2:'CD',date:'Jun 18',time:'TBD',venue:'Rose Bowl',city:'Los Angeles',stage:'Group J',c1:'#239F40',c2:'#007FFF'},
+  {id:20,t1:'Turkey',t2:'Cuba',f1:'TR',f2:'CU',date:'Jun 18',time:'TBD',venue:'Estadio Akron',city:'Guadalajara',stage:'Group K',c1:'#E30A17',c2:'#CC0001'},
+  {id:21,t1:'Ukraine',t2:'Panama',f1:'UA',f2:'PA',date:'Jun 19',time:'TBD',venue:'Estadio Azteca',city:'Mexico City',stage:'Group K',c1:'#005BBB',c2:'#DA121A'},
+  {id:22,t1:'Argentina',t2:'South Korea',f1:'AR',f2:'KR',date:'Jun 19',time:'TBD',venue:'SoFi Stadium',city:'Los Angeles',stage:'Group L',c1:'#74ACDF',c2:'#C60C30'},
+  {id:23,t1:'Qatar',t2:'Romania',f1:'QA',f2:'RO',date:'Jun 20',time:'TBD',venue:'BMW Stadium',city:'Atlanta',stage:'Group L',c1:'#8D1B3D',c2:'#002B7F'},
+  {id:50,t1:'Round of 32',t2:'Match 1',f1:'--',f2:'--',date:'Jun 29',time:'TBD',venue:'TBD',city:'TBD',stage:'Round of 32',c1:'#c9a84c',c2:'#555'},
+  {id:90,t1:'Semifinal 1',t2:'TBD',f1:'--',f2:'--',date:'Jul 14',time:'TBD',venue:'MetLife Stadium',city:'New York',stage:'Semifinal',c1:'#c9a84c',c2:'#4488ff'},
+  {id:91,t1:'Semifinal 2',t2:'TBD',f1:'--',f2:'--',date:'Jul 15',time:'TBD',venue:'SoFi Stadium',city:'Los Angeles',stage:'Semifinal',c1:'#4488ff',c2:'#c9a84c'},
+  {id:99,t1:'Champion',t2:'Runner-Up',f1:'--',f2:'--',date:'Jul 19',time:'3:00 PM ET',venue:'MetLife Stadium',city:'New York / NJ',stage:'FINAL',c1:'#c9a84c',c2:'#c9a84c'},
+];
+
+// Flag rendering using country code text boxes (no emoji = no Unicode warnings)
+const FLAG_COLORS = {
+  MX:'#006847',BR:'#009C3B',US:'#002868',CA:'#FF0000',FR:'#002395',AR:'#74ACDF',
+  DE:'#000000',ES:'#AA151B',PT:'#006600',GB:'#003087',NL:'#FF4B00',IT:'#009246',
+  JP:'#BC002D',KR:'#C60C30',PL:'#DC143C',BE:'#EF3340',UA:'#005BBB',TR:'#E30A17',
+  ZA:'#007A4D',CZ:'#D7141A',PY:'#D52B1E',BA:'#002395',HR:'#FF0000',CM:'#007A5E',
+  RS:'#C6363C',SN:'#00853F',SA:'#006C35',MA:'#C1272D',DZ:'#006233',UY:'#75AADB',
+  NG:'#008751',NZ:'#00247D',EG:'#CE1126',EC:'#FFD100',CI:'#F77F00',IR:'#239F40',
+  CD:'#007FFF',CU:'#CC0001',PA:'#DA121A',QA:'#8D1B3D',RO:'#002B7F',AT:'#ED2939',
+  CL:'#D52B1E',CO:'#FCD116',GB:'#003087',
+};
+
+const MC_TEMPLATES = [
+  {id:'classic',icon:'VS',name:'Match Day'},
+  {id:'oracle',icon:'?',name:'Oracle'},
+  {id:'hype',icon:'!',name:'Hype'},
+  {id:'result',icon:'FT',name:'Result'},
+  {id:'stat',icon:'#',name:'Stat'},
+  {id:'quote',icon:'"',name:'Hot Take'},
+];
+
+let mcSelectedMatch = null;
+let mcTemplate = 'classic';
+let mcStageFilter = 'all';
+let mcInited = false;
+
+function mcInit() {
+  if (mcInited) return;
+  mcInited = true;
+  mcBuildStageFilter();
+  mcRenderList();
+  mcBuildTemplates();
+}
+
+function mcBuildStageFilter() {
+  const wrap = document.getElementById('mc-stage-filter');
+  if (!wrap || wrap.children.length > 0) return;
+  ['all','Group','Knockout'].forEach(s => {
+    const b = document.createElement('button');
+    b.className = 'btn btn-secondary btn-sm' + (s==='all'?' active':'');
+    b.textContent = s === 'all' ? 'All' : s;
+    b.style.cssText = 'font-size:11px;padding:4px 10px;';
+    b.onclick = () => {
+      mcStageFilter = s;
+      wrap.querySelectorAll('button').forEach(x => x.classList.remove('active'));
+      b.classList.add('active');
+      mcRenderList();
+    };
+    wrap.appendChild(b);
+  });
+}
+
+function mcBuildTemplates() {
+  const grid = document.getElementById('mc-tmpl-grid');
+  if (!grid || grid.children.length > 0) return;
+  MC_TEMPLATES.forEach(t => {
+    const d = document.createElement('div');
+    d.style.cssText = 'aspect-ratio:9/16;background:var(--card);border:1.5px solid '+(t.id===mcTemplate?'var(--accent)':'var(--border)')+';border-radius:var(--r);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;transition:border-color .15s;';
+    d.innerHTML = '<div style="font-size:13px;font-weight:700;color:var(--accent);">'+t.icon+'</div><div style="font-size:9px;color:var(--muted);text-align:center;line-height:1.3;">'+t.name+'</div>';
+    d.onclick = () => {
+      mcTemplate = t.id;
+      grid.querySelectorAll('div').forEach(x => x.style.borderColor = 'var(--border)');
+      d.style.borderColor = 'var(--accent)';
+      document.getElementById('mc-result-inputs').style.display = t.id==='result'?'block':'none';
+      document.getElementById('mc-stat-inputs').style.display = t.id==='stat'?'block':'none';
+      document.getElementById('mc-quote-inputs').style.display = t.id==='quote'?'block':'none';
+      if (mcSelectedMatch) mcRender();
+    };
+    grid.appendChild(d);
+  });
+}
+
+function mcFilter() { mcRenderList(); }
+
+function mcRenderList() {
+  const list = document.getElementById('mc-list');
+  if (!list) return;
+  const q = (document.getElementById('mc-search').value||'').toLowerCase();
+  list.innerHTML = '';
+  MC_MATCHES.filter(m => {
+    const stageOk = mcStageFilter==='all' ? true :
+      mcStageFilter==='Group' ? m.stage.startsWith('Group') :
+      !m.stage.startsWith('Group');
+    const searchOk = !q || m.t1.toLowerCase().includes(q) || m.t2.toLowerCase().includes(q) || m.city.toLowerCase().includes(q);
+    return stageOk && searchOk;
+  }).forEach(m => {
+    const d = document.createElement('div');
+    const isActive = mcSelectedMatch && mcSelectedMatch.id === m.id;
+    d.style.cssText = 'display:flex;align-items:center;gap:8px;padding:9px 10px;border-radius:var(--r);cursor:pointer;border:1px solid '+(isActive?'var(--accent)':'transparent')+';background:'+(isActive?'rgba(201,168,76,.08)':'var(--card)')+';margin-bottom:3px;transition:all .12s;';
+    const sc = mcStageLabel(m.stage);
+    d.innerHTML = '<div style="font-size:10px;font-weight:700;color:'+sc.color+';width:48px;flex-shrink:0;text-align:center;background:'+sc.bg+';border-radius:4px;padding:2px 4px;">'+m.f1+' '+m.f2+'</div>'
+      +'<div style="flex:1;min-width:0;">'
+      +'<div style="font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+m.t1+' vs '+m.t2+'</div>'
+      +'<div style="font-size:10px;color:var(--muted);">'+m.date+' · '+m.city+'</div>'
+      +'</div>'
+      +'<div style="font-size:9px;padding:2px 6px;border-radius:6px;background:'+sc.bg+';color:'+sc.color+';white-space:nowrap;flex-shrink:0;">'+m.stage+'</div>';
+    d.onmouseenter = () => { if (!isActive) d.style.borderColor='var(--border)'; };
+    d.onmouseleave = () => { if (!isActive) d.style.borderColor='transparent'; };
+    d.onclick = () => mcSelectMatch(m);
+    list.appendChild(d);
+  });
+}
+
+function mcStageLabel(s) {
+  if (s==='FINAL') return {bg:'rgba(201,168,76,.2)',color:'#c9a84c'};
+  if (s==='Semifinal') return {bg:'rgba(218,54,51,.2)',color:'#f47068'};
+  if (s.includes('16')||s.includes('Quart')||s.includes('32')) return {bg:'rgba(68,136,255,.15)',color:'#79b8ff'};
+  return {bg:'rgba(255,255,255,.06)',color:'#8b949e'};
+}
+
+function mcSelectMatch(m) {
+  mcSelectedMatch = m;
+  mcRenderList();
+  // Info strip
+  document.getElementById('mc-selected-info').style.display='block';
+  document.getElementById('mc-si-teams').textContent = m.t1+' vs '+m.t2;
+  document.getElementById('mc-si-meta').textContent = m.date+(m.time!=='TBD'?' · '+m.time:'')+' · '+m.venue+', '+m.city;
+  const sc = mcStageLabel(m.stage);
+  const sb = document.getElementById('mc-si-stage');
+  sb.textContent = m.stage; sb.style.background=sc.bg; sb.style.color=sc.color;
+  // Buttons
+  document.getElementById('mc-save-btn').disabled=false;
+  document.getElementById('mc-copy-btn').disabled=false;
+  // Canvas
+  document.getElementById('mc-empty').style.display='none';
+  document.getElementById('mc-canvas').style.display='block';
+  mcRender();
+}
+
+// ── Canvas render dispatcher ──
+function mcRender() {
+  if (!mcSelectedMatch) return;
+  const canvas = document.getElementById('mc-canvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0,0,1080,1920);
+  const m = mcSelectedMatch;
+  if (mcTemplate==='classic') mcDrawClassic(ctx,m);
+  else if (mcTemplate==='oracle') mcDrawOracle(ctx,m);
+  else if (mcTemplate==='hype') mcDrawHype(ctx,m);
+  else if (mcTemplate==='result') mcDrawResult(ctx,m);
+  else if (mcTemplate==='stat') mcDrawStat(ctx,m);
+  else if (mcTemplate==='quote') mcDrawQuote(ctx,m);
+}
+
+// ── Shared canvas helpers ──
+const MCW=1080,MCH=1920;
+function mcHex2rgba(hex,a){const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);return `rgba(${r},${g},${b},${a})`;}
+function mcRoundRect(ctx,x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.lineTo(x+w-r,y);ctx.quadraticCurveTo(x+w,y,x+w,y+r);ctx.lineTo(x+w,y+h-r);ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);ctx.lineTo(x+r,y+h);ctx.quadraticCurveTo(x,y+h,x,y+h-r);ctx.lineTo(x,y+r);ctx.quadraticCurveTo(x,y,x+r,y);ctx.closePath();}
+function mcWrapText(ctx,text,x,y,maxW,lineH){const words=text.split(' ');let line='',cy=y;for(let i=0;i<words.length;i++){const test=line+words[i]+' ';if(ctx.measureText(test).width>maxW&&i>0){ctx.fillText(line.trim(),x,cy);line=words[i]+' ';cy+=lineH;}else line=test;}ctx.fillText(line.trim(),x,cy);}
+
+function mcDrawBase(ctx,dark1,dark2){
+  const g=ctx.createLinearGradient(0,0,0,MCH);g.addColorStop(0,dark1);g.addColorStop(1,dark2);
+  ctx.fillStyle=g;ctx.fillRect(0,0,MCW,MCH);
+  ctx.strokeStyle='rgba(255,255,255,0.025)';ctx.lineWidth=1;
+  for(let y=0;y<MCH;y+=100){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(MCW,y);ctx.stroke();}
+}
+function mcDrawSplit(ctx,c1,c2,a=0.15){
+  const lg=ctx.createLinearGradient(0,0,MCW/2,0);lg.addColorStop(0,mcHex2rgba(c1,a));lg.addColorStop(1,'rgba(0,0,0,0)');
+  ctx.fillStyle=lg;ctx.fillRect(0,0,MCW,MCH);
+  const rg=ctx.createLinearGradient(MCW,0,MCW/2,0);rg.addColorStop(0,mcHex2rgba(c2,a));rg.addColorStop(1,'rgba(0,0,0,0)');
+  ctx.fillStyle=rg;ctx.fillRect(0,0,MCW,MCH);
+}
+function mcDrawGoldBars(ctx){
+  const g=ctx.createLinearGradient(0,0,MCW,0);
+  g.addColorStop(0,'#8a6a1a');g.addColorStop(0.5,'#e8c96a');g.addColorStop(1,'#8a6a1a');
+  ctx.fillStyle=g;ctx.fillRect(0,0,MCW,10);ctx.fillRect(0,MCH-10,MCW,10);
+}
+function mcDrawBadge(ctx,y=105){
+  ctx.font='600 28px Inter,sans-serif';ctx.fillStyle='rgba(201,168,76,0.65)';
+  ctx.textAlign='center';ctx.fillText('FIFA WORLD CUP 2026',MCW/2,y);
+}
+function mcDrawStagePill(ctx,stage,y){
+  const sc=mcStageLabel(stage);
+  ctx.font='700 24px Inter,sans-serif';
+  const tw=ctx.measureText(stage.toUpperCase()).width;
+  const pw=tw+48,ph=42,px=MCW/2-pw/2;
+  ctx.fillStyle=sc.bg;mcRoundRect(ctx,px,y-32,pw,ph,21);ctx.fill();
+  ctx.strokeStyle=sc.color;ctx.lineWidth=1.5;mcRoundRect(ctx,px,y-32,pw,ph,21);ctx.stroke();
+  ctx.fillStyle=sc.color;ctx.fillText(stage.toUpperCase(),MCW/2,y);
+}
+function mcDrawFlag(ctx,code,cx,cy,size=160){
+  // Draw a flag box with country code — no emoji, no unicode issues
+  const col = FLAG_COLORS[code] || '#444';
+  const bw=size*1.4, bh=size;
+  mcRoundRect(ctx,cx-bw/2,cy-bh/2,bw,bh,12);
+  ctx.fillStyle=col;ctx.fill();
+  ctx.strokeStyle='rgba(255,255,255,0.15)';ctx.lineWidth=2;
+  mcRoundRect(ctx,cx-bw/2,cy-bh/2,bw,bh,12);ctx.stroke();
+  // Two-letter code
+  ctx.font=`700 ${Math.round(size*0.38)}px Inter,sans-serif`;
+  ctx.fillStyle='rgba(255,255,255,0.9)';ctx.textAlign='center';
+  ctx.fillText(code==='--'?'TBD':code,cx,cy+size*0.14);
+}
+function mcDrawTeamName(ctx,name,x,y){
+  const fs=name.length>12?68:name.length>9?82:name.length>6?96:110;
+  ctx.font=`700 ${fs}px Bebas Neue,sans-serif`;
+  ctx.fillStyle='#ffffff';ctx.textAlign='center';
+  ctx.shadowColor='rgba(0,0,0,0.5)';ctx.shadowBlur=8;
+  ctx.fillText(name.toUpperCase(),x,y);ctx.shadowBlur=0;
+}
+function mcDrawWatermark(ctx){
+  const wm=document.getElementById('mc-watermark').value||'';
+  ctx.font='400 32px Inter,sans-serif';ctx.fillStyle='rgba(255,255,255,0.2)';
+  ctx.textAlign='left';ctx.fillText(wm,60,MCH-52);
+}
+function mcSepLine(ctx,y){
+  const g=ctx.createLinearGradient(60,0,MCW-60,0);
+  g.addColorStop(0,'transparent');g.addColorStop(0.2,'rgba(201,168,76,.4)');
+  g.addColorStop(0.8,'rgba(201,168,76,.4)');g.addColorStop(1,'transparent');
+  ctx.strokeStyle=g;ctx.lineWidth=1.5;
+  ctx.beginPath();ctx.moveTo(60,y);ctx.lineTo(MCW-60,y);ctx.stroke();
+}
+
+// ── CLASSIC ──
+function mcDrawClassic(ctx,m){
+  mcDrawBase(ctx,'#090e14','#111822');mcDrawSplit(ctx,m.c1,m.c2,0.18);mcDrawGoldBars(ctx);
+  mcDrawBadge(ctx);mcDrawStagePill(ctx,m.stage,192);
+  ctx.strokeStyle='rgba(255,255,255,0.05)';ctx.lineWidth=2;ctx.setLineDash([8,8]);
+  ctx.beginPath();ctx.moveTo(MCW/2,260);ctx.lineTo(MCW/2,MCH-180);ctx.stroke();ctx.setLineDash([]);
+  mcDrawFlag(ctx,m.f1,MCW/4,530);mcDrawTeamName(ctx,m.t1,MCW/4,700);
+  ctx.font='700 180px Bebas Neue,sans-serif';ctx.fillStyle='#c9a84c';ctx.textAlign='center';
+  ctx.shadowColor='rgba(201,168,76,0.4)';ctx.shadowBlur=30;ctx.fillText('VS',MCW/2,980);ctx.shadowBlur=0;
+  mcDrawFlag(ctx,m.f2,3*MCW/4,530);mcDrawTeamName(ctx,m.t2,3*MCW/4,700);
+  mcSepLine(ctx,1080);
+  ctx.font='700 44px Inter,sans-serif';ctx.fillStyle='#c9a84c';ctx.textAlign='center';
+  ctx.fillText(m.date+(m.time!=='TBD'?' · '+m.time:''),MCW/2,1150);
+  ctx.font='400 36px Inter,sans-serif';ctx.fillStyle='rgba(255,255,255,0.5)';
+  ctx.fillText(m.venue,MCW/2,1210);ctx.font='400 32px Inter,sans-serif';
+  ctx.fillStyle='rgba(255,255,255,0.3)';ctx.fillText(m.city,MCW/2,1258);
+  ctx.font='500 30px Inter,sans-serif';ctx.fillStyle='rgba(201,168,76,0.45)';
+  ctx.fillText('USA  ·  Canada  ·  Mexico',MCW/2,MCH-160);
+  mcDrawWatermark(ctx);
+}
+
+// ── ORACLE ──
+function mcDrawOracle(ctx,m){
+  mcDrawBase(ctx,'#050810','#0a0c18');mcDrawSplit(ctx,m.c1,m.c2,0.14);mcDrawGoldBars(ctx);
+  ctx.font='700 30px Inter,sans-serif';ctx.fillStyle='rgba(201,168,76,0.8)';ctx.textAlign='center';
+  ctx.fillText('THE AI ORACLE PREDICTS',MCW/2,110);
+  ctx.font='600 22px Inter,sans-serif';ctx.fillStyle='rgba(255,255,255,0.25)';
+  ctx.fillText('FIFA WORLD CUP 2026',MCW/2,150);
+  mcDrawStagePill(ctx,m.stage,210);
+  const ox=MCW/2,oy=700,or=260;
+  const og=ctx.createRadialGradient(ox,oy,0,ox,oy,or);
+  og.addColorStop(0,'rgba(201,168,76,0.2)');og.addColorStop(1,'rgba(0,0,0,0)');
+  ctx.fillStyle=og;ctx.beginPath();ctx.arc(ox,oy,or,0,Math.PI*2);ctx.fill();
+  ctx.strokeStyle='rgba(201,168,76,0.35)';ctx.lineWidth=1.5;
+  ctx.beginPath();ctx.arc(ox,oy,or-8,0,Math.PI*2);ctx.stroke();
+  mcDrawFlag(ctx,m.f1,MCW/4,560,120);
+  ctx.font='700 62px Bebas Neue,sans-serif';ctx.fillStyle='rgba(255,255,255,0.9)';ctx.textAlign='center';
+  ctx.fillText(m.t1.toUpperCase(),MCW/4,680);
+  mcDrawFlag(ctx,m.f2,3*MCW/4,560,120);
+  ctx.font='700 62px Bebas Neue,sans-serif';ctx.fillText(m.t2.toUpperCase(),3*MCW/4,680);
+  ctx.font='700 120px Bebas Neue,sans-serif';ctx.fillStyle='#c9a84c';
+  ctx.shadowColor='rgba(201,168,76,0.5)';ctx.shadowBlur=24;ctx.fillText('VS',MCW/2,760);ctx.shadowBlur=0;
+  ctx.font='700 52px Bebas Neue,sans-serif';ctx.fillStyle='rgba(255,255,255,0.6)';
+  ctx.fillText('WHO WINS?',MCW/2,870);
+  ['ANALYZING FORM...','SCANNING HISTORY...','PROCESSING ODDS...'].forEach((txt,i)=>{
+    const y=970+i*80;
+    ctx.fillStyle='rgba(255,255,255,0.06)';mcRoundRect(ctx,MCW/2-330,y-28,660,44,22);ctx.fill();
+    ctx.fillStyle='rgba(201,168,76,0.25)';mcRoundRect(ctx,MCW/2-330,y-28,220+i*80,44,22);ctx.fill();
+    ctx.font='600 22px Inter,sans-serif';ctx.fillStyle='rgba(255,255,255,0.4)';ctx.textAlign='left';
+    ctx.fillText(txt,MCW/2-310,y+6);
+  });
+  mcSepLine(ctx,1240);
+  ctx.font='700 34px Inter,sans-serif';ctx.fillStyle='rgba(255,255,255,0.35)';ctx.textAlign='center';
+  ctx.fillText("ORACLE'S VERDICT",MCW/2,1295);
+  ctx.font='700 260px Bebas Neue,sans-serif';ctx.fillStyle='rgba(201,168,76,0.12)';
+  ctx.fillText('?',MCW/2,1590);
+  ctx.font='600 32px Inter,sans-serif';ctx.fillStyle='rgba(255,255,255,0.3)';
+  ctx.fillText('Watch the video to find out',MCW/2,1640);
+  ctx.font='600 36px Inter,sans-serif';ctx.fillStyle='rgba(201,168,76,0.7)';
+  ctx.fillText(m.date+(m.time!=='TBD'?' · '+m.time:''),MCW/2,MCH-190);
+  ctx.font='400 30px Inter,sans-serif';ctx.fillStyle='rgba(255,255,255,0.3)';
+  ctx.fillText(m.city,MCW/2,MCH-148);
+  mcDrawWatermark(ctx);
+}
+
+// ── HYPE ──
+function mcDrawHype(ctx,m){
+  mcDrawBase(ctx,'#0c0a04','#1a1408');mcDrawSplit(ctx,m.c1,m.c2,0.22);mcDrawGoldBars(ctx);
+  ctx.font='600 28px Inter,sans-serif';ctx.fillStyle='rgba(201,168,76,0.65)';ctx.textAlign='center';
+  ctx.fillText('FIFA WORLD CUP 2026',MCW/2,100);
+  ctx.font='700 140px Bebas Neue,sans-serif';ctx.fillStyle='#c9a84c';
+  ctx.shadowColor='rgba(201,168,76,0.4)';ctx.shadowBlur=28;ctx.fillText('GAME DAY',MCW/2,270);ctx.shadowBlur=0;
+  mcDrawStagePill(ctx,m.stage,335);
+  mcDrawFlag(ctx,m.f1,MCW/4,530,140);mcDrawTeamName(ctx,m.t1,MCW/4,710);
+  const vg=ctx.createLinearGradient(MCW/2-100,890,MCW/2+100,1040);
+  vg.addColorStop(0,'#ffdd44');vg.addColorStop(0.5,'#ff6600');vg.addColorStop(1,'#c9a84c');
+  ctx.font='700 200px Bebas Neue,sans-serif';ctx.fillStyle=vg;
+  ctx.shadowColor='rgba(255,100,0,0.4)';ctx.shadowBlur=36;ctx.fillText('VS',MCW/2,1020);ctx.shadowBlur=0;
+  mcDrawFlag(ctx,m.f2,3*MCW/4,530,140);mcDrawTeamName(ctx,m.t2,3*MCW/4,710);
+  mcSepLine(ctx,1080);
+  ctx.font='700 68px Bebas Neue,sans-serif';ctx.fillStyle='#ffffff';ctx.textAlign='center';
+  ctx.fillText(m.date.toUpperCase(),MCW/2,1160);
+  if(m.time!=='TBD'){ctx.font='700 62px Bebas Neue,sans-serif';ctx.fillStyle='#c9a84c';ctx.fillText(m.time,MCW/2,1240);}
+  ctx.font='400 38px Inter,sans-serif';ctx.fillStyle='rgba(255,255,255,0.45)';ctx.fillText(m.venue,MCW/2,1310);
+  ctx.font='400 32px Inter,sans-serif';ctx.fillStyle='rgba(255,255,255,0.3)';ctx.fillText(m.city,MCW/2,1358);
+  ctx.font='700 50px Bebas Neue,sans-serif';ctx.fillStyle='rgba(201,168,76,0.8)';
+  ctx.fillText('WHO ARE YOU BACKING?',MCW/2,MCH-195);
+  ctx.font='500 34px Inter,sans-serif';ctx.fillStyle='rgba(255,255,255,0.3)';
+  ctx.fillText('Drop your pick in the comments',MCW/2,MCH-148);
+  mcDrawWatermark(ctx);
+}
+
+// ── RESULT ──
+function mcDrawResult(ctx,m){
+  const s1=parseInt(document.getElementById('mc-score1').value)||0;
+  const s2=parseInt(document.getElementById('mc-score2').value)||0;
+  const win=s1>s2?1:s2>s1?2:0;
+  mcDrawBase(ctx,'#040a08','#0a1410');mcDrawSplit(ctx,m.c1,m.c2,win===1?0.22:win===2?0.08:0.14);mcDrawGoldBars(ctx);
+  mcDrawBadge(ctx);mcDrawStagePill(ctx,m.stage,175);
+  ctx.font='700 36px Inter,sans-serif';ctx.fillStyle='rgba(255,255,255,0.4)';ctx.textAlign='center';
+  ctx.fillText('FULL TIME',MCW/2,240);
+  mcDrawFlag(ctx,m.f1,MCW/4,490,130);mcDrawTeamName(ctx,m.t1,MCW/4,650);
+  mcDrawFlag(ctx,m.f2,3*MCW/4,490,130);mcDrawTeamName(ctx,m.t2,3*MCW/4,650);
+  ctx.fillStyle='rgba(0,0,0,0.5)';mcRoundRect(ctx,MCW/2-210,720,420,190,18);ctx.fill();
+  ctx.strokeStyle='rgba(201,168,76,0.3)';ctx.lineWidth=1.5;mcRoundRect(ctx,MCW/2-210,720,420,190,18);ctx.stroke();
+  ctx.font='700 150px Bebas Neue,sans-serif';ctx.textAlign='center';
+  ctx.fillStyle=s1>s2?'#fff':'rgba(255,255,255,0.35)';ctx.fillText(s1,MCW/2-86,876);
+  ctx.font='700 76px Bebas Neue,sans-serif';ctx.fillStyle='rgba(201,168,76,0.6)';ctx.fillText('-',MCW/2,870);
+  ctx.font='700 150px Bebas Neue,sans-serif';ctx.fillStyle=s2>s1?'#fff':'rgba(255,255,255,0.35)';ctx.fillText(s2,MCW/2+86,876);
+  if(win!==0){
+    ctx.font='700 56px Bebas Neue,sans-serif';ctx.fillStyle='#c9a84c';
+    ctx.shadowColor='rgba(201,168,76,0.4)';ctx.shadowBlur=14;ctx.textAlign='center';
+    ctx.fillText((win===1?m.t1:m.t2).toUpperCase()+' WIN!',MCW/2,990);ctx.shadowBlur=0;
+  } else {
+    ctx.font='700 56px Bebas Neue,sans-serif';ctx.fillStyle='#c9a84c';ctx.fillText('DRAW',MCW/2,990);
+  }
+  ctx.font='500 36px Inter,sans-serif';ctx.fillStyle='rgba(255,255,255,0.4)';
+  ctx.fillText(m.date+' · '+m.city,MCW/2,1080);
+  mcDrawWatermark(ctx);
+}
+
+// ── STAT ──
+function mcDrawStat(ctx,m){
+  const num=document.getElementById('mc-stat-num').value||'?';
+  const label=document.getElementById('mc-stat-label').value||'Stat about this match';
+  mcDrawBase(ctx,'#060a10','#0d1320');mcDrawSplit(ctx,m.c1,m.c2,0.12);mcDrawGoldBars(ctx);
+  mcDrawBadge(ctx);
+  ctx.font='700 52px Bebas Neue,sans-serif';ctx.fillStyle='rgba(255,255,255,0.65)';ctx.textAlign='center';
+  ctx.fillText(m.t1.toUpperCase()+' vs '+m.t2.toUpperCase(),MCW/2,330);
+  mcDrawStagePill(ctx,m.stage,390);
+  mcSepLine(ctx,420);
+  const fs=num.length>5?260:num.length>3?320:400;
+  ctx.font=`700 ${fs}px Bebas Neue,sans-serif`;ctx.fillStyle='#c9a84c';
+  ctx.shadowColor='rgba(201,168,76,0.3)';ctx.shadowBlur=28;ctx.textAlign='center';
+  ctx.fillText(num,MCW/2,1000);ctx.shadowBlur=0;
+  const ug=ctx.createLinearGradient(MCW/2-200,0,MCW/2+200,0);
+  ug.addColorStop(0,'rgba(201,168,76,0)');ug.addColorStop(0.5,'rgba(201,168,76,0.7)');ug.addColorStop(1,'rgba(201,168,76,0)');
+  ctx.strokeStyle=ug;ctx.lineWidth=4;
+  ctx.beginPath();ctx.moveTo(MCW/2-200,1040);ctx.lineTo(MCW/2+200,1040);ctx.stroke();
+  ctx.font='600 50px Inter,sans-serif';ctx.fillStyle='#ffffff';
+  mcWrapText(ctx,label.toUpperCase(),MCW/2,1120,MCW-140,64);
+  ctx.font='500 36px Inter,sans-serif';ctx.fillStyle='rgba(201,168,76,0.6)';
+  ctx.fillText(m.date+' · '+m.city,MCW/2,MCH-160);
+  mcDrawWatermark(ctx);
+}
+
+// ── QUOTE / HOT TAKE ──
+function mcDrawQuote(ctx,m){
+  const q=document.getElementById('mc-quote-text').value||'This match will be one for the ages.';
+  mcDrawBase(ctx,'#0a0a0a','#151515');mcDrawSplit(ctx,m.c1,m.c2,0.13);mcDrawGoldBars(ctx);
+  mcDrawBadge(ctx);
+  ctx.font='700 56px Bebas Neue,sans-serif';ctx.fillStyle='rgba(255,255,255,0.8)';ctx.textAlign='center';
+  ctx.fillText(m.t1.toUpperCase()+' vs '+m.t2.toUpperCase(),MCW/2,250);
+  mcDrawStagePill(ctx,m.stage,308);
+  ctx.font='700 400px Bebas Neue,sans-serif';ctx.fillStyle='rgba(201,168,76,0.05)';ctx.textAlign='left';
+  ctx.fillText('"',20,900);
+  ctx.fillStyle='rgba(0,0,0,0.4)';mcRoundRect(ctx,60,420,MCW-120,820,20);ctx.fill();
+  ctx.strokeStyle='rgba(201,168,76,0.22)';ctx.lineWidth=1.5;mcRoundRect(ctx,60,420,MCW-120,820,20);ctx.stroke();
+  ctx.fillStyle='#c9a84c';mcRoundRect(ctx,60,420,8,820,4);ctx.fill();
+  ctx.font='600 56px Inter,sans-serif';ctx.fillStyle='#ffffff';ctx.textAlign='left';
+  mcWrapText(ctx,'"'+q+'"',108,520,MCW-195,74);
+  ctx.font='500 34px Inter,sans-serif';ctx.fillStyle='rgba(201,168,76,0.7)';ctx.textAlign='right';
+  ctx.fillText('- '+(document.getElementById('mc-watermark').value||'@WC2026'),MCW-80,1260);
+  ctx.font='600 38px Inter,sans-serif';ctx.fillStyle='rgba(255,255,255,0.4)';ctx.textAlign='center';
+  ctx.fillText(m.date+' · '+m.city,MCW/2,MCH-158);
+  mcDrawWatermark(ctx);
+}
+
+// ── SAVE / COPY ──
+function mcSavePNG(){
+  if(!mcSelectedMatch){showToast('Select a match first');return;}
+  mcRender();
+  const canvas=document.getElementById('mc-canvas');
+  const name='WC2026_'+mcSelectedMatch.t1.replace(/\s+/g,'')+'_vs_'+mcSelectedMatch.t2.replace(/\s+/g,'')+'_'+mcTemplate+'.png';
+  const a=document.createElement('a');a.download=name;a.href=canvas.toDataURL('image/png');a.click();
+  showToast('PNG saved!');
+}
+function mcCopyCanvas(){
+  if(!mcSelectedMatch)return;mcRender();
+  document.getElementById('mc-canvas').toBlob(async blob=>{
+    try{await navigator.clipboard.write([new ClipboardItem({'image/png':blob})]);showToast('Copied!');}
+    catch(e){showToast('Use Save PNG instead');}
+  });
+}
+
+// ═══════════════════════════════════════════════
+// RESULT CARD
+// ═══════════════════════════════════════════════
+const RC_CW=1080,RC_CH=1920;
+const RC_SAFE={top:192,bottom:480,left:54,right:162};
+const RC_PLATFORM_ZONES={
+  tiktok:[{l:'Top bar',x:0,y:0,w:RC_CW,h:154,c:'rgba(218,54,51,.13)'},{l:'Bottom UI',x:0,y:RC_CH-422,w:RC_CW,h:422,c:'rgba(218,54,51,.13)'},{l:'Side buttons',x:RC_CW-130,y:300,w:130,h:900,c:'rgba(218,54,51,.08)'}],
+  reels:[{l:'Top',x:0,y:0,w:RC_CW,h:115,c:'rgba(150,80,200,.13)'},{l:'Bottom',x:0,y:RC_CH-384,w:RC_CW,h:384,c:'rgba(150,80,200,.13)'},{l:'Side',x:RC_CW-108,y:280,w:108,h:800,c:'rgba(150,80,200,.08)'}],
+  shorts:[{l:'Top',x:0,y:0,w:RC_CW,h:154,c:'rgba(255,80,80,.13)'},{l:'Bottom',x:0,y:RC_CH-346,w:RC_CW,h:346,c:'rgba(255,80,80,.13)'},{l:'Side',x:RC_CW-108,y:300,w:108,h:700,c:'rgba(255,80,80,.08)'}],
+  clean:[],
+};
+const RC_FLAG_COLORS={BR:'#009C3B',DE:'#000000',FR:'#002395',AR:'#74ACDF',ES:'#AA151B',GB:'#003087',PT:'#006600',NL:'#FF4B00',IT:'#009246',BE:'#EF3340',US:'#002868',MX:'#006847',CA:'#FF0000',JP:'#BC002D',KR:'#C60C30',HR:'#FF0000',MA:'#C1272D',SN:'#00853F',NG:'#008751',CO:'#FCD116',UY:'#75AADB',CL:'#D52B1E',EC:'#FFD100',PL:'#DC143C',UA:'#005BBB',AT:'#ED2939',TR:'#E30A17',IR:'#239F40',SA:'#006C35',QA:'#8D1B3D',AU:'#00843D',NZ:'#00247D',EG:'#CE1126',CM:'#007A5E',CI:'#F77F00',CD:'#007FFF',DZ:'#006233',PY:'#D52B1E',RS:'#C6363C',CZ:'#D7141A',RO:'#002B7F',CU:'#CC0001',PA:'#DA121A',ZA:'#007A4D'};
+
+let rcScorers1=[],rcScorers2=[],rcPlatform='tiktok',rcInited=false;
+
+function rcInit(){
+  if(rcInited)return; rcInited=true;
+  rcAddScorer(1); rcAddScorer(2);
+  rcRenderCard();
+  rcSizeCanvas();
+  window.addEventListener('resize',rcSizeCanvas);
+}
+
+function rcSizeCanvas(){
+  const wrap=document.getElementById('rcPreviewWrap');
+  if(!wrap)return;
+  const maxW=Math.min(wrap.parentElement.offsetWidth-20,360);
+  wrap.style.width=maxW+'px';
+  wrap.style.height=(maxW*RC_CH/RC_CW)+'px';
+  rcPositionSafeOverlay(maxW);
+  rcDrawPlatformOverlay(maxW);
+}
+
+function rcPositionSafeOverlay(cw){
+  const s=cw/RC_CW,o=document.getElementById('rcSafeOverlay');
+  if(!o)return;
+  o.style.left=(RC_SAFE.left*s)+'px'; o.style.top=(RC_SAFE.top*s)+'px';
+  o.style.width=((RC_CW-RC_SAFE.left-RC_SAFE.right)*s)+'px';
+  o.style.height=((RC_CH-RC_SAFE.top-RC_SAFE.bottom)*s)+'px';
+}
+
+function rcSetPlatform(p,btn){
+  rcPlatform=p;
+  document.querySelectorAll('.ptab-rc').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  rcDrawPlatformOverlay(document.getElementById('rcPreviewWrap').offsetWidth);
+}
+
+function rcDrawPlatformOverlay(cw){
+  const container=document.getElementById('rcPlatformOverlay');
+  if(!container)return;
+  container.innerHTML='';
+  const s=cw/RC_CW;
+  (RC_PLATFORM_ZONES[rcPlatform]||[]).forEach(z=>{
+    const d=document.createElement('div');
+    d.style.cssText=`position:absolute;left:${z.x*s}px;top:${z.y*s}px;width:${z.w*s}px;height:${z.h*s}px;background:${z.c};`;
+    const lbl=document.createElement('div');
+    lbl.style.cssText='font-size:9px;color:rgba(255,255,255,0.5);padding:3px 5px;font-family:Inter,sans-serif;';
+    lbl.textContent=z.l; d.appendChild(lbl); container.appendChild(d);
+  });
+}
+
+function rcToggleSafe(){
+  document.getElementById('rcSafeOverlay').style.display=document.getElementById('rcShowSafe').checked?'block':'none';
+}
+
+// ── Scorers ──
+function rcAddScorer(team){
+  const arr=team===1?rcScorers1:rcScorers2;
+  if(arr.length>=6)return;
+  arr.push({id:Date.now()+Math.random(),name:'',min:''});
+  rcRenderScorers(team);
+}
+function rcRemoveScorer(team,id){
+  if(team===1)rcScorers1=rcScorers1.filter(s=>s.id!==id);
+  else rcScorers2=rcScorers2.filter(s=>s.id!==id);
+  rcRenderScorers(team); rcRenderCard();
+}
+function rcUpdateScorer(team,id,field,val){
+  const arr=team===1?rcScorers1:rcScorers2;
+  const s=arr.find(x=>x.id===id); if(s)s[field]=val; rcRenderCard();
+}
+function rcRenderScorers(team){
+  const arr=team===1?rcScorers1:rcScorers2;
+  const el=document.getElementById('rc-sc'+team);
+  if(!el)return; el.innerHTML='';
+  arr.forEach(s=>{
+    const row=document.createElement('div'); row.className='scorer-row-rc';
+    row.innerHTML=`<input type="text" placeholder="Player name" value="${s.name}" oninput="rcUpdateScorer(${team},${s.id},'name',this.value)"><input type="text" placeholder="45'" value="${s.min}" oninput="rcUpdateScorer(${team},${s.id},'min',this.value)" style="text-align:center;"><button class="scorer-del-rc" onclick="rcRemoveScorer(${team},${s.id})">✕</button>`;
+    el.appendChild(row);
+  });
+}
+
+// ── Smart parser ──
+function rcParse(){
+  const raw=document.getElementById('rc-paste').value.trim();
+  const ok=document.getElementById('rc-parse-ok'), fail=document.getElementById('rc-parse-fail');
+  ok.style.display='none'; fail.style.display='none';
+  if(!raw){fail.textContent='Paste some text first';fail.style.display='block';return;}
+  const scoreRx=/(\d{1,2})\s*[-–:]\s*(\d{1,2})/;
+  const scoreMatch=raw.match(scoreRx);
+  if(!scoreMatch){fail.textContent='Could not find a score — check format';fail.style.display='block';return;}
+  const s1=scoreMatch[1],s2=scoreMatch[2];
+  let t1='',t2='';
+  const vsRx=/^([A-Za-z\s\-'\.]+?)\s+\d[-–:]\d\s+([A-Za-z\s\-'\.]+?)(?:\s|$|,|\.|\/)/i;
+  const vsMatch=raw.match(vsRx);
+  if(vsMatch){t1=vsMatch[1].trim();t2=vsMatch[2].trim();}
+  else{const bRx=/([A-Za-z\s]+?)\s+(?:beat|defeated|beats|vs\.?|v\.?)\s+([A-Za-z\s]+?)(?:\s+\d|\s*$)/i;const bm=raw.match(bRx);if(bm){t1=bm[1].trim();t2=bm[2].trim();}}
+  const ns1=[],ns2=[];
+  raw.split(/[\/|]/).forEach((part,idx)=>{
+    const srx=/([A-Za-z\u00C0-\u017E\s\.']+?)\s*(?:\()?(\d{1,3}\+?\d*)'?\)?/g;
+    let m;
+    while((m=srx.exec(part))!==null){
+      const name=m[1].trim().replace(/^[,\s]+|[,\s]+$/g,'');
+      if(name.length>1&&name.length<30&&!name.match(/^\d/)){
+        (idx===0?ns1:ns2).push({id:Date.now()+Math.random(),name,min:m[2]+"'"});
+      }
+    }
+  });
+  if(t1){document.getElementById('rc-t1').value=t1;document.getElementById('rc-c1').value=rcTeamCode(t1);}
+  if(t2){document.getElementById('rc-t2').value=t2;document.getElementById('rc-c2').value=rcTeamCode(t2);}
+  document.getElementById('rc-s1').value=s1;
+  document.getElementById('rc-s2').value=s2;
+  if(ns1.length){rcScorers1=ns1;rcRenderScorers(1);}
+  if(ns2.length){rcScorers2=ns2;rcRenderScorers(2);}
+  const found=['Score: '+(t1||'T1')+' '+s1+'-'+s2+' '+(t2||'T2')];
+  if(ns1.length)found.push((t1||'T1')+': '+ns1.map(s=>s.name).join(', '));
+  if(ns2.length)found.push((t2||'T2')+': '+ns2.map(s=>s.name).join(', '));
+  ok.textContent='Parsed — '+found.join(' · '); ok.style.display='block';
+  rcUpdate();
+}
+
+function rcTeamCode(name){
+  const map={brazil:'BR',germany:'DE',france:'FR',argentina:'AR',spain:'ES',england:'GB',portugal:'PT',netherlands:'NL',italy:'IT',belgium:'BE',usa:'US','united states':'US',mexico:'MX',canada:'CA',japan:'JP','south korea':'KR',croatia:'HR',morocco:'MA',senegal:'SN',nigeria:'NG',colombia:'CO',uruguay:'UY',chile:'CL',ecuador:'EC',poland:'PL',ukraine:'UA',austria:'AT',turkey:'TR',iran:'IR','saudi arabia':'SA',qatar:'QA',australia:'AU','new zealand':'NZ',egypt:'EG',cameroon:'CM','ivory coast':'CI','dr congo':'CD',algeria:'DZ',paraguay:'PY',serbia:'RS',czechia:'CZ',romania:'RO',cuba:'CU',panama:'PA','south africa':'ZA'};
+  return map[name.toLowerCase()]||name.slice(0,2).toUpperCase();
+}
+
+// ── Headline generator ──
+function rcHeadline(t1,t2,s1,s2,stage){
+  const n1=(t1||'Team 1').toUpperCase(),n2=(t2||'Team 2').toUpperCase();
+  const diff=Math.abs(s1-s2);
+  const win=s1>s2?n1:s2>s1?n2:null,lose=s1>s2?n2:s2>s1?n1:null;
+  const draw=s1===s2;
+  if(draw)return s1===0?'GOALLESS STALEMATE':'THEY SHARE THE SPOILS';
+  if(stage==='final')return win+' ARE WORLD CHAMPIONS';
+  if(stage==='sf')return win+' ARE GOING TO THE FINAL';
+  if(stage==='qf')return win+' INTO THE SEMIFINAL';
+  if(diff>=4)return 'RUTHLESS '+win+' RUN RIOT';
+  if(diff===3)return win+' DEMOLISH '+lose;
+  if(stage==='r16')return lose+' ELIMINATED — '+win+' MARCH ON';
+  if(stage==='r32')return win+' THROUGH TO ROUND OF 16';
+  if(diff===1){const p=['LATE DRAMA AS '+win+' PREVAIL',win+' EDGE THROUGH IN THRILLER',win+' SURVIVE SCARE'];return p[Math.floor(s1*s2*7)%p.length];}
+  return win+' THROUGH — '+lose+' EXIT';
+}
+
+function rcMeaning(t1,t2,s1,s2,stage){
+  const win=s1>s2?(t1||'Team 1'):(t2||'Team 2'),lose=s1>s2?(t2||'Team 2'):(t1||'Team 1'),draw=s1===s2;
+  const m={group:draw?'Both teams remain in contention':win+' take 3 points',r32:draw?'Goes to extra time':win+' advance to R16 · '+lose+' eliminated',r16:draw?'Goes to extra time':win+' advance to QF · '+lose+' eliminated',qf:draw?'Goes to extra time':win+' advance to SF · '+lose+' eliminated',sf:draw?'Goes to extra time':win+' advance to the FINAL · '+lose+' eliminated',final:draw?'Goes to extra time':win+' are FIFA World Cup 2026 Champions'};
+  return m[stage]||'';
+}
+
+function rcUpdate(){
+  const t1=document.getElementById('rc-t1').value.trim(),t2=document.getElementById('rc-t2').value.trim();
+  const s1=parseInt(document.getElementById('rc-s1').value)||0,s2=parseInt(document.getElementById('rc-s2').value)||0;
+  const stage=document.getElementById('rc-stage').value;
+  if(t1&&t2){
+    document.getElementById('rc-hl-preview').textContent=rcHeadline(t1,t2,s1,s2,stage);
+    const me=document.getElementById('rc-meaning');
+    if(!me.value)me.placeholder=rcMeaning(t1,t2,s1,s2,stage);
+  }
+  rcRenderCard();
+}
+
+// ── Canvas helpers ──
+function rcHex2rgba(hex,a){if(!hex||hex.length<6)return`rgba(100,100,100,${a})`;const r=parseInt(hex.slice(-6,-4),16),g=parseInt(hex.slice(-4,-2),16),b=parseInt(hex.slice(-2),16);return`rgba(${r},${g},${b},${a})`;}
+function rcGetColor(code){return RC_FLAG_COLORS[code?code.toUpperCase():'']||'#444';}
+function rcRR(ctx,x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.lineTo(x+w-r,y);ctx.quadraticCurveTo(x+w,y,x+w,y+r);ctx.lineTo(x+w,y+h-r);ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);ctx.lineTo(x+r,y+h);ctx.quadraticCurveTo(x,y+h,x,y+h-r);ctx.lineTo(x,y+r);ctx.quadraticCurveTo(x,y,x+r,y);ctx.closePath();}
+function rcWT(ctx,text,x,y,maxW,lh){const words=text.split(' ');let line='',cy=y;for(let i=0;i<words.length;i++){const t=line+words[i]+' ';if(ctx.measureText(t).width>maxW&&i>0){ctx.fillText(line.trim(),x,cy);line=words[i]+' ';cy+=lh;}else line=t;}ctx.fillText(line.trim(),x,cy);}
+function rcFlagBox(ctx,code,cx,cy,sz){
+  const col=rcGetColor(code),bw=sz*1.5,bh=sz;
+  rcRR(ctx,cx-bw/2,cy-bh/2,bw,bh,14);ctx.fillStyle=col;ctx.fill();
+  ctx.strokeStyle='rgba(255,255,255,0.15)';ctx.lineWidth=2;
+  rcRR(ctx,cx-bw/2,cy-bh/2,bw,bh,14);ctx.stroke();
+  ctx.font=`700 ${Math.round(sz*0.42)}px Inter,sans-serif`;
+  ctx.fillStyle='rgba(255,255,255,0.92)';ctx.textAlign='center';
+  ctx.fillText(code&&code.length?code.toUpperCase():'?',cx,cy+sz*0.15);
+}
+
+// ── Main render ──
+function rcRenderCard(){
+  const canvas=document.getElementById('rcCanvas');
+  if(!canvas)return;
+  const ctx=canvas.getContext('2d');
+  ctx.clearRect(0,0,RC_CW,RC_CH);
+
+  const t1=document.getElementById('rc-t1').value.trim()||'Team 1';
+  const t2=document.getElementById('rc-t2').value.trim()||'Team 2';
+  const c1=(document.getElementById('rc-c1').value.trim()||'T1').toUpperCase();
+  const c2=(document.getElementById('rc-c2').value.trim()||'T2').toUpperCase();
+  const s1=parseInt(document.getElementById('rc-s1').value)||0;
+  const s2=parseInt(document.getElementById('rc-s2').value)||0;
+  const stage=document.getElementById('rc-stage').value;
+  const date=document.getElementById('rc-date').value.trim();
+  const city=document.getElementById('rc-city').value.trim();
+  const venue=document.getElementById('rc-venue').value.trim();
+  const keyStat=document.getElementById('rc-stat').value.trim();
+  const meaning=document.getElementById('rc-meaning').value.trim();
+  const wm=document.getElementById('rc-watermark').value.trim();
+  const headline=document.getElementById('rc-hl-override').value.trim()||rcHeadline(t1,t2,s1,s2,stage);
+  const isDraw=s1===s2,win1=s1>s2;
+  const col1=rcGetColor(c1),col2=rcGetColor(c2);
+
+  // BG
+  const bg=ctx.createLinearGradient(0,0,0,RC_CH);
+  bg.addColorStop(0,'#070b10');bg.addColorStop(1,'#0d1520');
+  ctx.fillStyle=bg;ctx.fillRect(0,0,RC_CW,RC_CH);
+  ctx.strokeStyle='rgba(255,255,255,0.022)';ctx.lineWidth=1;
+  for(let y=0;y<RC_CH;y+=96){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(RC_CW,y);ctx.stroke();}
+
+  // Team color splits
+  const la=win1?0.20:isDraw?0.12:0.06,ra=(!win1&&!isDraw)?0.20:isDraw?0.12:0.06;
+  const lg=ctx.createLinearGradient(0,0,RC_CW*0.55,0);
+  lg.addColorStop(0,rcHex2rgba(col1,la));lg.addColorStop(1,'rgba(0,0,0,0)');
+  ctx.fillStyle=lg;ctx.fillRect(0,0,RC_CW,RC_CH);
+  const rg=ctx.createLinearGradient(RC_CW,0,RC_CW*0.45,0);
+  rg.addColorStop(0,rcHex2rgba(col2,ra));rg.addColorStop(1,'rgba(0,0,0,0)');
+  ctx.fillStyle=rg;ctx.fillRect(0,0,RC_CW,RC_CH);
+
+  // Winner side glow bar
+  if(!isDraw){
+    const wc=win1?col1:col2;
+    const gg=ctx.createLinearGradient(win1?0:RC_CW,0,win1?55:RC_CW-55,0);
+    gg.addColorStop(0,rcHex2rgba(wc,0.85));gg.addColorStop(1,'rgba(0,0,0,0)');
+    ctx.fillStyle=gg;ctx.fillRect(win1?0:RC_CW-55,0,55,RC_CH);
+  }
+
+  // Gold bars
+  const gb=ctx.createLinearGradient(0,0,RC_CW,0);
+  gb.addColorStop(0,'#6b4e10');gb.addColorStop(0.5,'#e8c96a');gb.addColorStop(1,'#6b4e10');
+  ctx.fillStyle=gb;ctx.fillRect(0,0,RC_CW,10);ctx.fillRect(0,RC_CH-10,RC_CW,10);
+
+  // ── CONTENT IN SAFE ZONE (y 192–1440) ──
+
+  // FIFA badge
+  ctx.font='600 26px Inter,sans-serif';ctx.fillStyle='rgba(201,168,76,0.6)';
+  ctx.textAlign='center';ctx.fillText('FIFA WORLD CUP 2026',RC_CW/2,132);
+
+  // FULL TIME + stage
+  ctx.font='700 32px Inter,sans-serif';ctx.fillStyle='rgba(255,255,255,0.45)';
+  ctx.textAlign='center';ctx.fillText('FULL TIME',RC_CW/2,208);
+
+  const stageMap={group:'GROUP STAGE',r32:'ROUND OF 32',r16:'ROUND OF 16',qf:'QUARTERFINAL',sf:'SEMIFINAL',final:'THE FINAL'};
+  const stageC={group:'#8b949e',r32:'#79b8ff',r16:'#79b8ff',qf:'#c9a84c',sf:'#f47068',final:'#c9a84c'};
+  const stageB={group:'rgba(255,255,255,.06)',r32:'rgba(68,136,255,.18)',r16:'rgba(68,136,255,.2)',qf:'rgba(201,168,76,.2)',sf:'rgba(218,54,51,.2)',final:'rgba(201,168,76,.3)'};
+  const sl=(stageMap[stage]||'MATCH');
+  ctx.font='700 24px Inter,sans-serif';
+  const slw=ctx.measureText(sl).width,spw=slw+48,sph=42;
+  ctx.fillStyle=stageB[stage];rcRR(ctx,RC_CW/2-spw/2,250,spw,sph,sph/2);ctx.fill();
+  ctx.strokeStyle=stageC[stage];ctx.lineWidth=1.5;rcRR(ctx,RC_CW/2-spw/2,250,spw,sph,sph/2);ctx.stroke();
+  ctx.fillStyle=stageC[stage];ctx.textAlign='center';ctx.fillText(sl,RC_CW/2,280);
+
+  // Headline
+  const hlfs=headline.length>28?54:headline.length>22?62:68;
+  ctx.font=`700 ${hlfs}px Bebas Neue,sans-serif`;ctx.fillStyle='#ffffff';ctx.textAlign='center';
+  ctx.shadowColor='rgba(0,0,0,0.5)';ctx.shadowBlur=10;
+  rcWT(ctx,headline,RC_CW/2,358,RC_CW-120,76);ctx.shadowBlur=0;
+
+  // Flags + team names
+  rcFlagBox(ctx,c1,RC_CW/4,510,110);
+  const tf1=t1.length>10?58:t1.length>7?68:78;
+  ctx.font=`700 ${tf1}px Bebas Neue,sans-serif`;ctx.fillStyle=win1?'#fff':'rgba(255,255,255,0.45)';
+  ctx.textAlign='center';ctx.fillText(t1.toUpperCase(),RC_CW/4,648);
+  rcFlagBox(ctx,c2,3*RC_CW/4,510,110);
+  const tf2=t2.length>10?58:t2.length>7?68:78;
+  ctx.font=`700 ${tf2}px Bebas Neue,sans-serif`;ctx.fillStyle=(!win1&&!isDraw)?'#fff':'rgba(255,255,255,0.45)';
+  ctx.fillText(t2.toUpperCase(),3*RC_CW/4,648);
+
+  // Crown on winner
+  if(!isDraw){ctx.font='34px serif';ctx.textAlign='center';ctx.fillText('👑',win1?RC_CW/4:3*RC_CW/4,395);}
+
+  // Score block
+  const scy=808,sbw=520,sbh=190;
+  ctx.fillStyle='rgba(0,0,0,0.55)';rcRR(ctx,RC_CW/2-sbw/2,scy-sbh*0.75,sbw,sbh,24);ctx.fill();
+  ctx.strokeStyle='rgba(201,168,76,0.25)';ctx.lineWidth=1.5;rcRR(ctx,RC_CW/2-sbw/2,scy-sbh*0.75,sbw,sbh,24);ctx.stroke();
+
+  ctx.font='700 180px Bebas Neue,sans-serif';ctx.textAlign='center';
+  ctx.fillStyle=win1?'#fff':'rgba(255,255,255,0.35)';
+  ctx.shadowColor=win1?rcHex2rgba(col1,0.5):'transparent';ctx.shadowBlur=win1?20:0;
+  ctx.fillText(s1,RC_CW/2-118,scy+18);ctx.shadowBlur=0;
+  ctx.font='700 88px Bebas Neue,sans-serif';ctx.fillStyle='rgba(201,168,76,0.6)';
+  ctx.fillText('—',RC_CW/2,scy+6);
+  ctx.font='700 180px Bebas Neue,sans-serif';
+  ctx.fillStyle=(!win1&&!isDraw)?'#fff':'rgba(255,255,255,0.35)';
+  ctx.shadowColor=(!win1&&!isDraw)?rcHex2rgba(col2,0.5):'transparent';ctx.shadowBlur=(!win1&&!isDraw)?20:0;
+  ctx.fillText(s2,RC_CW/2+118,scy+18);ctx.shadowBlur=0;
+
+  // Scorers
+  const scY=968;
+  const as1=rcScorers1.filter(s=>s.name.trim()),as2=rcScorers2.filter(s=>s.name.trim());
+  if(as1.length||as2.length){
+    const sep=ctx.createLinearGradient(60,0,RC_CW-60,0);
+    sep.addColorStop(0,'transparent');sep.addColorStop(0.3,'rgba(201,168,76,0.3)');
+    sep.addColorStop(0.7,'rgba(201,168,76,0.3)');sep.addColorStop(1,'transparent');
+    ctx.strokeStyle=sep;ctx.lineWidth=1;
+    ctx.beginPath();ctx.moveTo(60,scY-14);ctx.lineTo(RC_CW-60,scY-14);ctx.stroke();
+
+    const maxR=Math.max(as1.length,as2.length);
+    for(let i=0;i<Math.min(maxR,5);i++){
+      const y=scY+i*52;
+      if(as1[i]){
+        ctx.font='600 28px Inter,sans-serif';
+        ctx.fillStyle=win1?'rgba(255,255,255,0.85)':'rgba(255,255,255,0.4)';
+        ctx.textAlign='left';ctx.fillText(as1[i].name,RC_SAFE.left+10,y);
+        if(as1[i].min){
+          const nw=ctx.measureText(as1[i].name).width;
+          ctx.font='500 24px Inter,sans-serif';
+          ctx.fillStyle=win1?'rgba(201,168,76,0.8)':'rgba(201,168,76,0.35)';
+          ctx.fillText(as1[i].min,RC_SAFE.left+18+nw,y);
+        }
+      }
+      if(as2[i]){
+        ctx.font='600 28px Inter,sans-serif';
+        ctx.fillStyle=(!win1&&!isDraw)?'rgba(255,255,255,0.85)':'rgba(255,255,255,0.4)';
+        ctx.textAlign='right';ctx.fillText(as2[i].name,RC_CW-RC_SAFE.right-10,y);
+        if(as2[i].min){
+          const nw=ctx.measureText(as2[i].name).width;
+          ctx.font='500 24px Inter,sans-serif';
+          ctx.fillStyle=(!win1&&!isDraw)?'rgba(201,168,76,0.8)':'rgba(201,168,76,0.35)';
+          ctx.fillText(as2[i].min,RC_CW-RC_SAFE.right-18-nw,y);
+        }
+      }
+    }
+  }
+
+  // Key stat
+  if(keyStat){
+    const ky=1218;
+    ctx.font='500 26px Inter,sans-serif';
+    const kw=ctx.measureText(keyStat).width;
+    ctx.fillStyle='rgba(255,255,255,0.05)';
+    rcRR(ctx,RC_CW/2-kw/2-24,ky-30,kw+48,44,22);ctx.fill();
+    ctx.fillStyle='rgba(255,255,255,0.35)';ctx.textAlign='center';ctx.fillText(keyStat,RC_CW/2,ky);
+  }
+
+  // Meaning
+  const fm=meaning||rcMeaning(t1,t2,s1,s2,stage);
+  if(fm){
+    const my=keyStat?1282:1234;
+    ctx.font=`600 ${fm.length>50?25:29}px Inter,sans-serif`;
+    ctx.fillStyle='rgba(255,255,255,0.48)';ctx.textAlign='center';
+    rcWT(ctx,fm,RC_CW/2,my,RC_CW-2*RC_SAFE.right,38);
+  }
+
+  // Date / venue
+  if(date||city){
+    ctx.font='600 34px Inter,sans-serif';ctx.fillStyle='rgba(201,168,76,0.7)';
+    ctx.textAlign='center';ctx.fillText((date||'')+(city?' · '+city:''),RC_CW/2,1368);
+  }
+  if(venue){
+    ctx.font='400 28px Inter,sans-serif';ctx.fillStyle='rgba(255,255,255,0.28)';
+    ctx.fillText(venue,RC_CW/2,1408);
+  }
+
+  // Watermark + hosts (below safe zone)
+  ctx.font='500 28px Inter,sans-serif';ctx.fillStyle='rgba(201,168,76,0.32)';
+  ctx.textAlign='center';ctx.fillText('USA  ·  Canada  ·  Mexico',RC_CW/2,RC_CH-176);
+  if(wm){ctx.font='400 28px Inter,sans-serif';ctx.fillStyle='rgba(255,255,255,0.18)';ctx.textAlign='left';ctx.fillText(wm,60,RC_CH-52);}
+
+  // Refresh platform overlay
+  rcDrawPlatformOverlay(document.getElementById('rcPreviewWrap').offsetWidth);
+}
+
+function rcSavePNG(){
+  rcRenderCard();
+  const canvas=document.getElementById('rcCanvas');
+  const t1=(document.getElementById('rc-t1').value||'Team1').replace(/\s/g,'');
+  const t2=(document.getElementById('rc-t2').value||'Team2').replace(/\s/g,'');
+  const s1=document.getElementById('rc-s1').value||'0';
+  const s2=document.getElementById('rc-s2').value||'0';
+  const a=document.createElement('a');
+  a.download=`WC2026_Result_${t1}_${s1}-${s2}_${t2}.png`;
+  a.href=canvas.toDataURL('image/png');a.click();
+  showToast('Result card saved!');
+}
+
+function rcCopy(){
+  rcRenderCard();
+  document.getElementById('rcCanvas').toBlob(async blob=>{
+    try{await navigator.clipboard.write([new ClipboardItem({'image/png':blob})]);showToast('Copied!');}
+    catch(e){showToast('Use Save PNG instead');}
+  });
+}
+
+function rcReset(){
+  ['rc-t1','rc-t2','rc-c1','rc-c2','rc-s1','rc-s2','rc-date','rc-city','rc-venue','rc-stat','rc-meaning','rc-hl-override','rc-paste'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
+  rcScorers1=[];rcScorers2=[];
+  rcRenderScorers(1);rcRenderScorers(2);
+  rcAddScorer(1);rcAddScorer(2);
+  document.getElementById('rc-hl-preview').textContent='Fill in teams and score';
+  document.getElementById('rc-parse-ok').style.display='none';
+  document.getElementById('rc-parse-fail').style.display='none';
+  rcRenderCard();
 }
 </script>
 </body>
