@@ -855,6 +855,15 @@ function showToast(msg){
 async function copyToClipboard(text){
   try{await navigator.clipboard.writeText(text);return true;}catch(e){return false;}
 }
+// iOS Safari requires the anchor to be in the DOM before .click() triggers a download
+function downloadPNG(canvas,filename){
+  const a=document.createElement('a');
+  a.download=filename;
+  a.href=canvas.toDataURL('image/png');
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(()=>document.body.removeChild(a),200);
+}
 function copyText(id){
   const el=document.getElementById(id);
   if(el)copyToClipboard(el.textContent).then(ok=>showToast(ok?'Copied!':'Copy failed'));
@@ -1317,8 +1326,7 @@ async function cardSave(){
   const canvas=document.getElementById('cardCanvas');
   const m=cardSelected;
   const name=`WC26_${m.t1.replace(/\s/g,'')}_vs_${m.t2.replace(/\s/g,'')}_${cardTmpl}.png`;
-  const a=document.createElement('a');
-  a.download=name;a.href=canvas.toDataURL('image/png');a.click();
+  downloadPNG(canvas,name);
 
   // Auto caption bundle
   const bundle=CAPTION_TEMPLATES[cardTmpl](m);
@@ -1816,8 +1824,7 @@ async function resSave(){
   const stage=document.getElementById('res-stage').value;
   const canvas=document.getElementById('resCanvas');
   const a=document.createElement('a');
-  a.download=`WC26_Result_${t1.replace(/\s/g,'')}_${s1}-${s2}_${t2.replace(/\s/g,'')}.png`;
-  a.href=canvas.toDataURL('image/png');a.click();
+  downloadPNG(canvas,`WC26_Result_${t1.replace(/\s/g,'')}_${s1}-${s2}_${t2.replace(/\s/g,'')}.png`);
   const headline=document.getElementById('res-hl').value.trim()||resHeadline(t1,t2,parseInt(s1),parseInt(s2),stage);
   const meaning=resMeaning(t1,t2,parseInt(s1),parseInt(s2),stage);
   const cap=`${headline}\n\n${t1} ${s1}–${s2} ${t2} · ${meaning}\n\nDid you call it? Drop your prediction receipts 👇`;
@@ -2070,8 +2077,7 @@ function statsSave(){
     const t1=document.getElementById('st-t1').value.trim()||'Team1';
     const t2=document.getElementById('st-t2').value.trim()||'Team2';
     const a=document.createElement('a');
-    a.download=`WC26_Stats_${t1.replace(/\s/g,'')}_vs_${t2.replace(/\s/g,'')}.png`;
-    a.href=canvas.toDataURL('image/png');a.click();
+    downloadPNG(canvas,`WC26_Stats_${t1.replace(/\s/g,'')}_vs_${t2.replace(/\s/g,'')}.png`);
     showToast('Stats card saved!');
     bumpStreak();
   });
@@ -2250,8 +2256,7 @@ function evSave(){
     const t1=document.getElementById('ev-t1').value.trim()||'Team1';
     const t2=document.getElementById('ev-t2').value.trim()||'Team2';
     const a=document.createElement('a');
-    a.download=`WC26_Events_${t1.replace(/\s/g,'')}_vs_${t2.replace(/\s/g,'')}.png`;
-    a.href=canvas.toDataURL('image/png');a.click();
+    downloadPNG(canvas,`WC26_Events_${t1.replace(/\s/g,'')}_vs_${t2.replace(/\s/g,'')}.png`);
     showToast('Match events card saved!');
     bumpStreak();
   });
@@ -2777,8 +2782,9 @@ async function vidRender(){
     const blob=new Blob(chunks,{type:mimeType});
     const url=URL.createObjectURL(blob);
     const a=document.createElement('a');
-    a.href=url;a.download=`WC26_${vidMode}_${data.theme}_${Date.now()}.${ext}`;a.click();
-    URL.revokeObjectURL(url);
+    a.href=url;a.download=`WC26_${vidMode}_${data.theme}_${Date.now()}.${ext}`;
+    document.body.appendChild(a);a.click();
+    setTimeout(()=>{document.body.removeChild(a);URL.revokeObjectURL(url);},300);
     btn.disabled=false;btn.innerHTML='🎬 Render & Download';
     status.textContent=`Saved .${ext} (${(totalDur/1000).toFixed(1)}s) — add a trending sound and post.`;
     showToast('Video saved! 🎬');
