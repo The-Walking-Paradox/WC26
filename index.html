@@ -1290,6 +1290,9 @@ function drawOracleTease(ctx,m,hook){
 function drawWM(ctx){
   ctx.font='400 30px Inter,sans-serif';ctx.fillStyle='rgba(255,255,255,0.2)';
   ctx.textAlign='left';ctx.fillText('@WC2026Updates',60,CH-50);
+  // Subtle brand mark — bottom right, light
+  ctx.font='500 24px Inter,sans-serif';ctx.fillStyle='rgba(201,168,76,0.28)';
+  ctx.textAlign='right';ctx.fillText('The Walking Paradox',CW-60,CH-50);
 }
 
 // Card save + auto caption
@@ -1392,6 +1395,7 @@ shots: [x]-[y]
 shots on target: [x]-[y]
 corners: [x]-[y]
 yellow: [x]-[y]
+red: [x]-[y]
 
 EVENTS
 [type] | [1 or 2] | [player] | [minute]
@@ -1472,7 +1476,7 @@ function resSmartParse(){
   }
 
   // STATS block
-  const statMap=[['possession','Possession'],['shots','Shots'],['shots on target','Shots on Target'],['corners','Corners'],['yellow','Yellow Cards']];
+  const statMap=[['possession','Possession'],['shots','Shots'],['shots on target','Shots on Target'],['corners','Corners'],['yellow','Yellow Cards'],['red','Red Cards']];
   let gotStats=false;
   const newStats=[];
   statMap.forEach(([key,label],i)=>{
@@ -1634,6 +1638,30 @@ async function resRender(){
   for(let y=0;y<CH;y+=92){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(CW,y);ctx.stroke();}
   drawGold(ctx);
 
+  // ── Precompute content height to vertically center the block ──
+  const _hl=headline.toUpperCase();
+  const _hfs=_hl.length>30?56:_hl.length>22?66:76;
+  ctx.font=`700 ${_hfs}px Bebas Neue,sans-serif`;
+  let _hlLineCount=1;
+  (function(){const ws=_hl.split(' ');let line='',c=1;ws.forEach(w=>{const t=line+w+' ';if(ctx.measureText(t).width>CW-120&&line){c++;line=w+' ';}else line=t;});_hlLineCount=c;})();
+  const _nGoals=resScorers1.filter(s=>s.name.trim()).length+resScorers2.filter(s=>s.name.trim()).length;
+  // natural content span: header(195) -> through goals/meaning/city
+  // We compute final 'city' baseline given the layout further down, then center.
+  // Header top ~195. Estimate content bottom:
+  const _headEnd=388+(_hlLineCount-1)*(_hfs+6);
+  const _flagY=_headEnd+185, _nameY=_flagY+150, _scoreY=_nameY+232;
+  const _tlTop=_scoreY+180, _tlStart=_tlTop+70;
+  const _tlAvail=(CH-300)-_tlStart;
+  const _rowGap=_nGoals?Math.max(92,Math.min(150,_tlAvail/Math.max(_nGoals,1))):0;
+  const _tlEnd=_nGoals?_tlStart+_rowGap*(_nGoals-1):_tlTop+180;
+  const _contentBottom=Math.min(_tlEnd+120,CH-150)+(city?48:0);
+  // Safe band centering: top margin 195, bottom safe edge ~1620 (hosts pinned below at CH-80)
+  const _safeTop=195,_safeBottom=1600;
+  const _slack=(_safeBottom-_contentBottom);
+  const _yOff=Math.max(0,Math.min(_slack*0.5,160)); // shift down up to 160px to center, never up
+  ctx.save();
+  ctx.translate(0,_yOff);
+
   // ═══ HEADER — starts at safe ~215 ═══
   ctx.textAlign='center';
   ctx.font='700 30px Inter,sans-serif';ctx.fillStyle='rgba(201,168,76,0.85)';
@@ -1667,7 +1695,7 @@ async function resRender(){
     ctx.save();rr(ctx,lx-127.5,flagY-85,255,170,18);ctx.clip();
     ctx.fillStyle='rgba(5,7,10,0.5)';ctx.fillRect(lx-127.5,flagY-85,255,170);ctx.restore();
   }
-  const nameY=flagY+132;
+  const nameY=flagY+150;
   const tf1=t1.length>10?54:t1.length>7?66:80;
   ctx.font=`700 ${tf1}px Bebas Neue,sans-serif`;
   ctx.fillStyle=win1||isDraw?'#fff':'rgba(255,255,255,0.4)';ctx.textAlign='center';
@@ -1677,22 +1705,23 @@ async function resRender(){
   ctx.fillStyle=(!win1||isDraw)?'#fff':'rgba(255,255,255,0.4)';
   ctx.fillText(t2.toUpperCase(),3*CW/4,nameY);
 
-  // ═══ HERO SCORE — clear zone BELOW names (extra breathing room) ═══
-  const scoreY=nameY+205;
-  const bandTop=scoreY-118,bandH=212;
+  // ═══ HERO SCORE — band fully contains the numbers (no overlap) ═══
+  const scoreNumSize=190;
+  const scoreY=nameY+232;            // baseline, well below names
+  const bandTop=scoreY-156,bandH=224; // band tall enough to wrap the glyphs
   const bandGrad=ctx.createLinearGradient(0,bandTop,0,bandTop+bandH);
   bandGrad.addColorStop(0,'rgba(0,0,0,0.45)');bandGrad.addColorStop(0.5,'rgba(0,0,0,0.62)');bandGrad.addColorStop(1,'rgba(0,0,0,0.45)');
   ctx.fillStyle=bandGrad;ctx.fillRect(0,bandTop,CW,bandH);
   ctx.fillStyle=h2r(winCol,isDraw?0.5:0.9);ctx.fillRect(0,bandTop,CW,5);
   ctx.fillStyle=h2r(winCol,isDraw?0.5:0.9);ctx.fillRect(0,bandTop+bandH-5,CW,5);
   ctx.textAlign='center';
-  ctx.font='700 200px Bebas Neue,sans-serif';
+  ctx.font=`700 ${scoreNumSize}px Bebas Neue,sans-serif`;
   ctx.fillStyle=win1?'#fff':isDraw?'#fff':'rgba(255,255,255,0.4)';
   ctx.shadowColor=win1?h2r(col1,0.85):'transparent';ctx.shadowBlur=win1?32:0;
   ctx.fillText(s1,CW/2-148,scoreY);ctx.shadowBlur=0;
-  ctx.font='700 100px Bebas Neue,sans-serif';ctx.fillStyle=h2r('#c9a84c',0.85);
-  ctx.fillText('–',CW/2,scoreY-16);
-  ctx.font='700 200px Bebas Neue,sans-serif';
+  ctx.font='700 95px Bebas Neue,sans-serif';ctx.fillStyle=h2r('#c9a84c',0.85);
+  ctx.fillText('–',CW/2,scoreY-22);
+  ctx.font=`700 ${scoreNumSize}px Bebas Neue,sans-serif`;
   ctx.fillStyle=(!win1&&!isDraw)?'#fff':isDraw?'#fff':'rgba(255,255,255,0.4)';
   ctx.shadowColor=(!win1&&!isDraw)?h2r(col2,0.85):'transparent';ctx.shadowBlur=(!win1&&!isDraw)?32:0;
   ctx.fillText(s2,CW/2+148,scoreY);ctx.shadowBlur=0;
@@ -1771,7 +1800,8 @@ async function resRender(){
     ctx.font='500 30px Inter,sans-serif';ctx.fillStyle='rgba(201,168,76,0.6)';
     ctx.textAlign='center';ctx.fillText(city,CW/2,by);
   }
-  // Hosts line pinned near bottom
+  ctx.restore(); // end centered content block
+  // Hosts line pinned near frame bottom (not shifted)
   ctx.font='500 26px Inter,sans-serif';ctx.fillStyle='rgba(201,168,76,0.3)';
   ctx.textAlign='center';ctx.fillText('USA · Canada · Mexico',CW/2,CH-80);
   drawWM(ctx);
@@ -1809,6 +1839,7 @@ const DEFAULT_STATS=[
   {label:'Shots on Target',v1:'8',v2:'3',type:'bar'},
   {label:'Corners',v1:'7',v2:'4',type:'bar'},
   {label:'Yellow Cards',v1:'2',v2:'3',type:'bar'},
+  {label:'Red Cards',v1:'0',v2:'0',type:'bar'},
 ];
 let statsRows=[];
 
@@ -1888,6 +1919,25 @@ async function statsUpdate(){
   ctx.strokeStyle='rgba(255,255,255,0.02)';ctx.lineWidth=1;
   for(let y=0;y<CH;y+=92){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(CW,y);ctx.stroke();}
   drawGold(ctx);
+
+  // ── Precompute content height to vertically center the block ──
+  const _nStats=statsRows.length;
+  const _barStartY=470+200+50; // flagY(470)+200 = colHdrY, +50 = barStartY
+  const _availForBars=Math.min(640,_nStats*94);
+  const _barSpacing=_nStats>0?_availForBars/_nStats:94;
+  let _potmH=0;
+  if(potm){
+    let _pDetail='';const _mm=potm.match(/^(.*?)\s*\((.*)\)\s*$/);
+    if(_mm)_pDetail=_mm[2].trim();
+    ctx.font='500 28px Inter,sans-serif';
+    let _dl=0;
+    if(_pDetail){const ws=_pDetail.split(' ');let line='';ws.forEach(w=>{const t=line+w+' ';if(ctx.measureText(t).width>CW-180&&line){_dl++;line=w+' ';}else line=t;});_dl++;}
+    _potmH=40+104+_dl*36;
+  }
+  const _contentBottom=_barStartY+_nStats*_barSpacing+_potmH;
+  const _slack=1600-_contentBottom;
+  const _yOff=Math.max(0,Math.min(_slack*0.5,150));
+  ctx.save();ctx.translate(0,_yOff);
 
   // ═══ HEADER (centered band starts ~210) ═══
   ctx.textAlign='center';
@@ -1993,6 +2043,7 @@ async function statsUpdate(){
   }
 
   // Hosts pinned near bottom (in safe zone)
+  ctx.restore(); // end centered content block
   ctx.font='500 26px Inter,sans-serif';ctx.fillStyle='rgba(201,168,76,0.3)';
   ctx.textAlign='center';ctx.fillText('USA · Canada · Mexico',CW/2,CH-90);
   drawWM(ctx);
@@ -2134,8 +2185,9 @@ async function evUpdate(){
   const n=Math.min(sorted.length,12);
   const lineX=CW/2;
   const tlTop=hcY+240;
-  const tlBottom=CH-150;
-  const rowGap=n>0?Math.min(120,(tlBottom-tlTop)/n):120;
+  const tlBottom=CH-200;
+  // spread rows to fill the available band (bigger gap when fewer events), capped for sanity
+  const rowGap=n>0?Math.max(120,Math.min(190,(tlBottom-tlTop)/n)):150;
   const tlStart=tlTop+rowGap/2;
 
   // vertical line
@@ -2167,20 +2219,22 @@ async function evUpdate(){
 
     // event content on team's side
     const pad=mw/2+30;
+    const evCode=isT1?c1:c2;
+    const evLabelTxt=(EV_LABEL[ev.type]||'')+(evCode&&evCode!=='T1'&&evCode!=='T2'?'  ·  '+evCode:'');
     if(isT1){
       ctx.textAlign='right';
       ctx.font='30px serif';ctx.fillText(ico,lineX-pad,y+4);
       ctx.font='700 36px Inter,sans-serif';ctx.fillStyle='#fff';
       ctx.fillText(ev.player||EV_LABEL[ev.type]||'',lineX-pad-46,y-4);
       ctx.font='600 22px Inter,sans-serif';ctx.fillStyle=evColor;
-      ctx.fillText(EV_LABEL[ev.type]||'',lineX-pad-46,y+28);
+      ctx.fillText(evLabelTxt,lineX-pad-46,y+28);
     }else{
       ctx.textAlign='left';
       ctx.font='30px serif';ctx.fillText(ico,lineX+pad,y+4);
       ctx.font='700 36px Inter,sans-serif';ctx.fillStyle='#fff';
       ctx.fillText(ev.player||EV_LABEL[ev.type]||'',lineX+pad+46,y-4);
       ctx.font='600 22px Inter,sans-serif';ctx.fillStyle=evColor;
-      ctx.fillText(EV_LABEL[ev.type]||'',lineX+pad+46,y+28);
+      ctx.fillText(evLabelTxt,lineX+pad+46,y+28);
     }
   });
 
